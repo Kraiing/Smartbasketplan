@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Court from './components/Court';
 import MenuBar from './components/MenuBar';
 import './styles/globals.css';
@@ -114,7 +114,7 @@ function App() {
   };
 
   // สร้างค่าเริ่มต้นสำหรับ activePositions เพื่อป้องกันหน้าจอขาว
-  const defaultActivePositions = {
+  const [defaultActivePositions, setDefaultActivePositions] = useState({
     red: {
       PG: true,
       SG: true,
@@ -129,7 +129,7 @@ function App() {
       PF: true,
       C: true
     }
-  };
+  });
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">
@@ -143,11 +143,19 @@ function App() {
         onResetBallPassState={handleResetBallPassState}
         activePositions={courtRef.current?.activePositions || defaultActivePositions}
         onTogglePosition={(team, position) => {
-          console.log(`Toggling position: ${team} - ${position}`);
-          if (courtRef.current?.togglePosition) {
+          console.log(`App - Toggling position: ${team} - ${position}`);
+          if (courtRef.current && courtRef.current.togglePosition) {
             courtRef.current.togglePosition(team, position);
           } else {
-            console.warn('togglePosition not available');
+            console.warn('Court togglePosition function is not available');
+            // Fallback: อัพเดตค่าใน defaultActivePositions เพื่อให้การแสดงผลทำงานได้ถึงแม้จะไม่มีฟังก์ชัน togglePosition
+            setDefaultActivePositions(prev => {
+              const newState = JSON.parse(JSON.stringify(prev));
+              if (newState[team]) {
+                newState[team][position] = !newState[team][position];
+              }
+              return newState;
+            });
           }
         }}
       />

@@ -39,7 +39,13 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
       
       // เรียกฟังก์ชัน toggle
       console.log(`TeamPositionsManager - Toggling: ${team} - ${position}`);
-      onTogglePosition(team, position);
+      
+      // ลองใช้ try-catch เพื่อจับข้อผิดพลาดที่อาจเกิดขึ้น
+      try {
+        onTogglePosition(team, position);
+      } catch (error) {
+        console.error("Error in onTogglePosition:", error);
+      }
     } else {
       console.warn("onTogglePosition is not a function or undefined");
     }
