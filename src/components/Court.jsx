@@ -1,4 +1,4 @@
-import React, { useEffect, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useImperativeHandle, forwardRef, useRef } from 'react';
 import Player from './Player.jsx';
 import Ball from './Ball.jsx';
 import { usePlayLogic } from '../hooks/usePlayLogic.js';
@@ -90,6 +90,29 @@ const Court = forwardRef((props, ref) => {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isLandscape = window.innerWidth > window.innerHeight;
+  
+  // ระบบการจัดการกับ double tap ของเส้น
+  const lastTapRef = useRef({ time: 0, lineId: null });
+  
+  // ฟังก์ชันที่ใช้จัดการกับการแตะที่เส้น
+  const handleLineTap = (e, lineId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const now = Date.now();
+    const lastTap = lastTapRef.current;
+    
+    // ตรวจสอบว่าเป็น double tap หรือไม่ (แตะในระยะเวลาไม่เกิน 500ms และเป็นเส้นเดียวกัน)
+    if (now - lastTap.time < 500 && lastTap.lineId === lineId) {
+      // ถ้าเป็น double tap ให้ลบเส้น
+      deleteLine(lineId);
+      // รีเซ็ตข้อมูล last tap
+      lastTapRef.current = { time: 0, lineId: null };
+    } else {
+      // ถ้าเป็น single tap ให้เก็บข้อมูลการแตะไว้
+      lastTapRef.current = { time: now, lineId };
+    }
+  };
 
   // ฟังก์ชันสำหรับทำให้เส้นสมูทด้วยการปรับแต่งพิเศษ
   const createSmoothLine = (points) => {
@@ -291,6 +314,13 @@ const Court = forwardRef((props, ref) => {
                 markerEnd="url(#arrow-black)"
                 style={{ pointerEvents: "all", cursor: "pointer" }}
                 onDoubleClick={() => deleteLine(line.id)}
+                onClick={(e) => handleLineTap(e, line.id)}
+                onTouchStart={(e) => {
+                  // ใช้สำหรับอุปกรณ์ touch โดยเฉพาะ
+                  if (isIOS) {
+                    handleLineTap(e, line.id);
+                  }
+                }}
               />
             );
           })}
@@ -329,6 +359,13 @@ const Court = forwardRef((props, ref) => {
           >
             Reset Animation
           </button>
+        )}
+        
+        {/* เพิ่มคำแนะนำการลบเส้นบนอุปกรณ์ iOS */}
+        {isIOS && (
+          <div className="absolute top-24 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs opacity-70">
+            แตะสองครั้งที่เส้นเพื่อลบ
+          </div>
         )}
         
         {/* เพิ่มฮินท์กรณีอยู่บน iOS เพื่อปรับปรุงประสบการณ์ผู้ใช้ */}
