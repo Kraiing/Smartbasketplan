@@ -23,7 +23,9 @@ const Court = forwardRef((props, ref) => {
     clearAllLines,
     deleteLine,
     currentAction,
-    isAnimating
+    isAnimating,
+    activePositions,
+    togglePosition
   } = usePlayLogic();
 
   // เปิดเผย function ไปยัง parent component ผ่าน ref
@@ -34,7 +36,9 @@ const Court = forwardRef((props, ref) => {
     undo,
     redo,
     clearAllLines,
-    resetBallPassState
+    resetBallPassState,
+    activePositions,
+    togglePosition
   }));
 
   // ป้องกันการ scroll บนอุปกรณ์มือถือและเริ่มต้นการตั้งค่า touch events

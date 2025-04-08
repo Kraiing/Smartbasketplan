@@ -3,19 +3,65 @@ import { useDrawingLogic } from './useDrawingLogic';
 import { useBallLogic } from './useBallLogic';
 
 export const usePlayLogic = () => {
+  // ข้อมูลตำแหน่งผู้เล่นทั้งหมด (ใช้เป็นข้อมูลอ้างอิง)
+  const playerPositions = {
+    red: {
+      PG: { id: 1, x: 25, y: 30, team: 'red', position: 'PG', hasBall: true },
+      SG: { id: 2, x: 35, y: 50, team: 'red', position: 'SG', hasBall: false },
+      SF: { id: 3, x: 20, y: 70, team: 'red', position: 'SF', hasBall: false },
+      PF: { id: 4, x: 40, y: 70, team: 'red', position: 'PF', hasBall: false },
+      C:  { id: 5, x: 30, y: 40, team: 'red', position: 'C', hasBall: false },
+    },
+    white: {
+      PG: { id: 6, x: 75, y: 30, team: 'white', position: 'PG', hasBall: false },
+      SG: { id: 7, x: 65, y: 50, team: 'white', position: 'SG', hasBall: false },
+      SF: { id: 8, x: 80, y: 70, team: 'white', position: 'SF', hasBall: false },
+      PF: { id: 9, x: 60, y: 70, team: 'white', position: 'PF', hasBall: false },
+      C:  { id: 10, x: 70, y: 40, team: 'white', position: 'C', hasBall: false },
+    }
+  };
+
+  // State สำหรับตำแหน่งที่เปิดใช้งาน (ค่าเริ่มต้นคือเปิดทุกตำแหน่ง)
+  const [activePositions, setActivePositions] = useState({
+    red: {
+      PG: true,
+      SG: true,
+      SF: true,
+      PF: true,
+      C: true
+    },
+    white: {
+      PG: true,
+      SG: true, 
+      SF: true,
+      PF: true,
+      C: true
+    }
+  });
+
+  // ฟังก์ชันสร้างรายการผู้เล่นจากตำแหน่งที่เปิดใช้งาน
+  const createPlayersList = useCallback(() => {
+    const players = [];
+    
+    // เพิ่มผู้เล่นทีมแดง
+    Object.entries(activePositions.red || {}).forEach(([position, isActive]) => {
+      if (isActive && playerPositions.red[position]) {
+        players.push({...playerPositions.red[position]});
+      }
+    });
+    
+    // เพิ่มผู้เล่นทีมขาว
+    Object.entries(activePositions.white || {}).forEach(([position, isActive]) => {
+      if (isActive && playerPositions.white[position]) {
+        players.push({...playerPositions.white[position]});
+      }
+    });
+    
+    return players;
+  }, [activePositions, playerPositions]);
+  
   // ตำแหน่งเริ่มต้นของผู้เล่น
-  const initialPlayers = [
-    { id: 1, x: 25, y: 30, team: 'red', position: 'PG', hasBall: true },
-    { id: 2, x: 35, y: 50, team: 'red', position: 'SG', hasBall: false },
-    { id: 3, x: 20, y: 70, team: 'red', position: 'SF', hasBall: false },
-    { id: 4, x: 40, y: 70, team: 'red', position: 'PF', hasBall: false },
-    { id: 5, x: 30, y: 40, team: 'red', position: 'C', hasBall: false },
-    { id: 6, x: 75, y: 30, team: 'white', position: 'PG', hasBall: false },
-    { id: 7, x: 65, y: 50, team: 'white', position: 'SG', hasBall: false },
-    { id: 8, x: 80, y: 70, team: 'white', position: 'SF', hasBall: false },
-    { id: 9, x: 60, y: 70, team: 'white', position: 'PF', hasBall: false },
-    { id: 10, x: 70, y: 40, team: 'white', position: 'C', hasBall: false },
-  ];
+  const initialPlayers = createPlayersList();
 
   // ตำแหน่งเริ่มต้นของลูกบอล
   const initialBall = { x: 25, y: 32, holderId: 1 };
@@ -101,16 +147,245 @@ export const usePlayLogic = () => {
     setHistory(prev => [...prev, {
       players: [...players],
       ball: {...ballLogic.ball},
-      lines: [...drawingLogic.lines]
+      lines: [...drawingLogic.lines],
+      activePositions: JSON.parse(JSON.stringify(activePositions))
     }]);
     setFuture([]);
     
-    setPlayers([...initialPlayers]);
+    // รีเซ็ตตำแหน่งที่เปิดใช้งานให้เป็นเริ่มต้น (เปิดทุกตำแหน่ง)
+    setActivePositions({
+      red: {
+        PG: true,
+        SG: true,
+        SF: true,
+        PF: true,
+        C: true
+      },
+      white: {
+        PG: true,
+        SG: true, 
+        SF: true,
+        PF: true,
+        C: true
+      }
+    });
+    
+    // สร้างรายการผู้เล่นใหม่จากค่าเริ่มต้น
+    const initialPlayersList = [
+      playerPositions.red.PG,
+      playerPositions.red.SG,
+      playerPositions.red.SF,
+      playerPositions.red.PF,
+      playerPositions.red.C,
+      playerPositions.white.PG,
+      playerPositions.white.SG,
+      playerPositions.white.SF,
+      playerPositions.white.PF,
+      playerPositions.white.C
+    ];
+    
+    setPlayers(initialPlayersList);
     ballLogic.setBall({...initialBall});
     drawingLogic.clearAllLines();
     activePointersRef.current.clear();
     setCurrentAction(null);
-  }, [players, ballLogic.ball, drawingLogic.lines, initialPlayers, initialBall]);
+  }, [players, ballLogic.ball, drawingLogic.lines, initialBall, activePositions, playerPositions]);
+
+  // ฟังก์ชันเปิด/ปิดตำแหน่งผู้เล่น
+  const togglePosition = useCallback((team, position) => {
+    if (!team || !position) {
+      console.warn("Invalid team or position in togglePosition", team, position);
+      return;
+    }
+    
+    // ตรวจสอบว่า activePositions มีค่าและมี team ที่ต้องการหรือไม่
+    if (!activePositions || !activePositions[team]) {
+      console.warn(`Team ${team} not found in activePositions`);
+      return;
+    }
+    
+    try {
+      // เช็คก่อนว่าจะปิดตำแหน่งผู้เล่นหรือไม่
+      const willDisable = activePositions[team][position];
+      
+      // ถ้าปิด ให้ตรวจสอบว่าเป็นผู้เล่นที่ถือบอลอยู่หรือไม่
+      if (willDisable) {
+        // หาผู้เล่นในตำแหน่งที่จะปิด
+        const playerToDisable = players.find(p => p.team === team && p.position === position);
+        
+        // ตรวจสอบว่าผู้เล่นนี้มีบอลหรือไม่
+        if (playerToDisable && playerToDisable.hasBall) {
+          // หาผู้เล่นในทีมเดียวกันที่ยังเปิดใช้งานอยู่
+          const otherActivePlayers = players.filter(p => 
+            p.team === team && 
+            p.id !== playerToDisable.id && 
+            activePositions[team][p.position]
+          );
+          
+          // ถ้ามีผู้เล่นอื่นในทีมเดียวกัน โอนบอลไปให้คนแรก
+          if (otherActivePlayers.length > 0) {
+            // โอนบอลไปให้ผู้เล่นคนแรกที่พบ
+            const newBallHolder = otherActivePlayers[0];
+            
+            // อัพเดต hasBall สำหรับผู้เล่นทุกคน
+            setPlayers(prev => prev.map(p => ({
+              ...p,
+              hasBall: p.id === newBallHolder.id
+            })));
+            
+            // อัพเดตตำแหน่งบอล
+            ballLogic.setBall({
+              x: newBallHolder.x,
+              y: newBallHolder.y + 2,
+              holderId: newBallHolder.id
+            });
+          } else {
+            // ถ้าไม่มีผู้เล่นในทีมเดียวกัน หาผู้เล่นทีมตรงข้าม
+            const oppositeTeam = team === 'red' ? 'white' : 'red';
+            const oppositeTeamPlayers = players.filter(p => 
+              p.team === oppositeTeam && 
+              activePositions[oppositeTeam][p.position]
+            );
+            
+            // ถ้ามีผู้เล่นทีมตรงข้าม โอนบอลไปให้
+            if (oppositeTeamPlayers.length > 0) {
+              const newBallHolder = oppositeTeamPlayers[0];
+              
+              // อัพเดต hasBall สำหรับผู้เล่นทุกคน
+              setPlayers(prev => prev.map(p => ({
+                ...p,
+                hasBall: p.id === newBallHolder.id
+              })));
+              
+              // อัพเดตตำแหน่งบอล
+              ballLogic.setBall({
+                x: newBallHolder.x,
+                y: newBallHolder.y + 2,
+                holderId: newBallHolder.id
+              });
+            } else {
+              // ถ้าไม่มีผู้เล่นอื่นเลย ให้บอลลอยตรงกลางสนาม
+              ballLogic.setBall({
+                x: 50,
+                y: 50,
+                holderId: null
+              });
+            }
+          }
+        }
+      }
+      
+      // ถ้าจะปิดตำแหน่งทั้งหมดในทีม (ซึ่งไม่อนุญาตถ้าทีมนั้นถือบอลอยู่)
+      // ตรวจสอบว่าหลังจากปิดแล้วจะเหลือผู้เล่นในทีมอีกไหม
+      const activePlayersInTeam = Object.keys(activePositions[team])
+        .filter(pos => pos !== position && activePositions[team][pos]);
+        
+      const ballHolderInTeam = players.find(p => p.team === team && p.hasBall);
+      
+      // ถ้าไม่มีผู้เล่นเหลือในทีมและทีมนี้มีผู้เล่นถือบอลอยู่ ให้ยกเลิกการปิด
+      if (willDisable && activePlayersInTeam.length === 0 && ballHolderInTeam) {
+        // แจ้งผู้ใช้ว่าไม่สามารถปิดทุกตำแหน่งได้
+        console.log("Cannot disable all positions in a team holding the ball");
+        return; // ยกเลิกการปิดตำแหน่ง
+      }
+      
+      // บันทึกประวัติก่อนเปลี่ยนแปลง
+      setHistory(prev => [...prev, { 
+        players: [...players],
+        ball: {...ballLogic.ball},
+        activePositions: JSON.parse(JSON.stringify(activePositions))
+      }]);
+      setFuture([]);
+      
+      // เปลี่ยนสถานะการเปิด/ปิดตำแหน่งผู้เล่น
+      setActivePositions(prev => {
+        // สร้าง Object ใหม่เพื่อหลีกเลี่ยงการ mutate state โดยตรง
+        const newState = { ...prev };
+        
+        // ตรวจสอบว่ามี team และ position ที่ต้องการหรือไม่
+        if (!newState[team]) {
+          newState[team] = {};
+        }
+        
+        // สลับค่า (toggle) สถานะของตำแหน่งที่ระบุ
+        newState[team][position] = !newState[team][position];
+        return newState;
+      });
+      
+      // อัพเดตรายการผู้เล่นตามตำแหน่งที่เปิดใช้งาน
+      setTimeout(() => {
+        try {
+          const newPlayers = createPlayersList();
+          
+          // อัพเดตผู้เล่นที่มีบอลถ้ามีการเปลี่ยนแปลงผู้เล่น
+          const currentBallHolder = players.find(p => p.hasBall);
+          
+          if (currentBallHolder) {
+            // ถ้าผู้เล่นที่มีบอลยังอยู่ในรายการใหม่
+            const ballHolderInNewPlayers = newPlayers.find(p => p.id === currentBallHolder.id);
+            
+            if (ballHolderInNewPlayers) {
+              // ถ้าผู้เล่นที่มีบอลยังอยู่ ก็ให้เขาถือบอลต่อไป
+              setPlayers(newPlayers.map(p => ({
+                ...p,
+                hasBall: p.id === currentBallHolder.id
+              })));
+            } else {
+              // กำหนดผู้เล่นคนใหม่ให้ถือบอล (หรือไม่มีก็ได้ถ้าไม่มีผู้เล่นเหลือ)
+              setPlayers(newPlayers);
+              
+              if (newPlayers.length > 0) {
+                // ถ้ามีผู้เล่นเหลืออยู่ ให้คนแรกถือบอล
+                setPlayers(newPlayers.map((p, index) => ({
+                  ...p,
+                  hasBall: index === 0
+                })));
+                
+                // อัพเดตตำแหน่งบอล
+                const firstPlayer = newPlayers[0];
+                ballLogic.setBall({
+                  x: firstPlayer.x,
+                  y: firstPlayer.y + 2,
+                  holderId: firstPlayer.id
+                });
+              } else {
+                // ถ้าไม่มีผู้เล่นเหลือเลย ให้บอลลอยกลางสนาม
+                ballLogic.setBall({
+                  x: 50,
+                  y: 50,
+                  holderId: null
+                });
+              }
+            }
+          } else {
+            // ถ้าตอนแรกไม่มีใครถือบอล ก็ใช้ผู้เล่นใหม่
+            setPlayers(newPlayers);
+          }
+        } catch (error) {
+          console.error("Error updating players after position toggle:", error);
+          // ถ้ามีข้อผิดพลาด ใช้ผู้เล่นเดิมและเช็คลูกบอล
+          const currentBallHolder = players.find(p => p.hasBall);
+          if (!currentBallHolder && players.length > 0) {
+            // ถ้าไม่มีผู้ถือบอล แต่มีผู้เล่น ให้คนแรกถือบอล
+            setPlayers(players.map((p, index) => ({
+              ...p,
+              hasBall: index === 0
+            })));
+            
+            // อัพเดตตำแหน่งบอล
+            const firstPlayer = players[0];
+            ballLogic.setBall({
+              x: firstPlayer.x,
+              y: firstPlayer.y + 2,
+              holderId: firstPlayer.id
+            });
+          }
+        }
+      }, 0);
+    } catch (error) {
+      console.error("Error in togglePosition:", error);
+    }
+  }, [players, ballLogic, activePositions, createPlayersList]);
 
   // ฟังก์ชันรีเซ็ตสถานะการส่งบอลหรืออนิเมชันฉุกเฉิน
   const resetBallPassState = useCallback(() => {
@@ -213,7 +488,8 @@ export const usePlayLogic = () => {
       {
         players: [...players],
         ball: {...ballLogic.ball},
-        lines: [...drawingLogic.lines]
+        lines: [...drawingLogic.lines],
+        activePositions: lastState.activePositions ? JSON.parse(JSON.stringify(activePositions)) : undefined
       },
       ...prev
     ]);
@@ -221,9 +497,10 @@ export const usePlayLogic = () => {
     if (lastState.players) setPlayers(lastState.players);
     if (lastState.ball) ballLogic.setBall(lastState.ball);
     if (lastState.lines) drawingLogic.setLines(lastState.lines);
+    if (lastState.activePositions) setActivePositions(lastState.activePositions);
     
     setHistory(prev => prev.slice(0, -1));
-  }, [history, players, ballLogic.ball, drawingLogic.lines, isAnimating]);
+  }, [history, players, ballLogic.ball, drawingLogic.lines, isAnimating, activePositions]);
 
   // Redo
   const redo = useCallback(() => {
@@ -239,16 +516,18 @@ export const usePlayLogic = () => {
       {
         players: [...players],
         ball: {...ballLogic.ball},
-        lines: [...drawingLogic.lines]
+        lines: [...drawingLogic.lines],
+        activePositions: nextState.activePositions ? JSON.parse(JSON.stringify(activePositions)) : undefined
       }
     ]);
     
     if (nextState.players) setPlayers(nextState.players);
     if (nextState.ball) ballLogic.setBall(nextState.ball);
     if (nextState.lines) drawingLogic.setLines(nextState.lines);
+    if (nextState.activePositions) setActivePositions(nextState.activePositions);
     
     setFuture(prev => prev.slice(1));
-  }, [future, players, ballLogic.ball, drawingLogic.lines, isAnimating]);
+  }, [future, players, ballLogic.ball, drawingLogic.lines, isAnimating, activePositions]);
 
   // จัดการการคลิก/แตะ
   const handlePointerDown = useCallback((e, id) => {
@@ -539,6 +818,8 @@ export const usePlayLogic = () => {
     clearAllLines: drawingLogic.clearAllLines,
     deleteLine: drawingLogic.deleteLine,
     currentAction,
-    isAnimating
+    isAnimating,
+    activePositions,
+    togglePosition
   };
 };

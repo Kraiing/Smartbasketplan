@@ -113,6 +113,24 @@ function App() {
     }
   };
 
+  // สร้างค่าเริ่มต้นสำหรับ activePositions เพื่อป้องกันหน้าจอขาว
+  const defaultActivePositions = {
+    red: {
+      PG: true,
+      SG: true,
+      SF: true,
+      PF: true,
+      C: true
+    },
+    white: {
+      PG: true,
+      SG: true,
+      SF: true,
+      PF: true,
+      C: true
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">
       <MenuBar 
@@ -123,6 +141,12 @@ function App() {
         onRedo={handleRedo}
         onClearAllLines={handleClearAllLines}
         onResetBallPassState={handleResetBallPassState}
+        activePositions={courtRef.current?.activePositions || defaultActivePositions}
+        onTogglePosition={(team, position) => {
+          if (courtRef.current?.togglePosition) {
+            courtRef.current.togglePosition(team, position);
+          }
+        }}
       />
       <div className="flex-grow overflow-hidden">
         <Court ref={courtRef} />
