@@ -38,6 +38,7 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
       }
       
       // เรียกฟังก์ชัน toggle
+      console.log(`TeamPositionsManager - Toggling: ${team} - ${position}`);
       onTogglePosition(team, position);
     } else {
       console.warn("onTogglePosition is not a function or undefined");
@@ -72,6 +73,7 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
           <div 
             key={position} 
             className={`flex items-center justify-between p-2 rounded transition-colors duration-200 ${getHoverColor()}`}
+            onClick={() => handleToggle(position)}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >

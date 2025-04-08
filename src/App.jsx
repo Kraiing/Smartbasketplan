@@ -143,8 +143,11 @@ function App() {
         onResetBallPassState={handleResetBallPassState}
         activePositions={courtRef.current?.activePositions || defaultActivePositions}
         onTogglePosition={(team, position) => {
+          console.log(`Toggling position: ${team} - ${position}`);
           if (courtRef.current?.togglePosition) {
             courtRef.current.togglePosition(team, position);
+          } else {
+            console.warn('togglePosition not available');
           }
         }}
       />

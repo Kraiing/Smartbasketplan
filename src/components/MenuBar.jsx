@@ -155,7 +155,7 @@ const MenuBar = ({
             </button>
             
             {showPlayerMenu && (
-              <div className={`absolute right-0 mt-1 bg-white shadow-lg rounded py-1 z-50 ${isIOS ? 'w-48' : 'w-44'}`}>
+              <div className={`absolute right-0 mt-1 bg-white bg-opacity-50 backdrop-blur-sm shadow-lg rounded py-1 z-50 ${isIOS ? 'w-48' : 'w-44'}`}>
                 <div className="text-center font-bold text-gray-700 py-1 border-b border-gray-200">
                   {t.positionsManagement}
                 </div>
@@ -180,7 +180,7 @@ const MenuBar = ({
                   </button>
                   
                   {showRedTeamMenu && (
-                    <div className="absolute left-full top-0 mt-0 ml-1 bg-white shadow-lg rounded-lg py-2 z-50 w-64 border border-red-100 animate-fade-in">
+                    <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-50 backdrop-blur-sm shadow-lg rounded-lg py-2 z-50 w-64 border border-red-100 animate-fade-in">
                       <TeamPositionsManager 
                         team="red" 
                         activePositions={activePositions && activePositions.red ? activePositions.red : {
@@ -214,7 +214,7 @@ const MenuBar = ({
                   </button>
                   
                   {showWhiteTeamMenu && (
-                    <div className="absolute left-full top-0 mt-0 ml-1 bg-white shadow-lg rounded-lg py-2 z-50 w-64 border border-blue-100 animate-fade-in">
+                    <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-50 backdrop-blur-sm shadow-lg rounded-lg py-2 z-50 w-64 border border-blue-100 animate-fade-in">
                       <TeamPositionsManager 
                         team="white" 
                         activePositions={activePositions && activePositions.white ? activePositions.white : {
