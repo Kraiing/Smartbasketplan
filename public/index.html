@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <!-- เพิ่ม viewport-fit=cover และ user-scalable=no เพื่อให้แสดงผลเต็มหน้าจอไอโฟน -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <!-- เพิ่ม apple-mobile-web-app-capable เพื่อให้สามารถเปิดเป็น fullscreen web app -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- ป้องกันการแสดง phone number เป็น links -->
+    <meta name="format-detection" content="telephone=no">
+    <!-- ป้องกัน iOS text size adjust -->
+    <style>
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+    </style>
+    <title>Basketball Strategy Board</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <!-- เพิ่ม script เพื่อรองรับการแสดงผลบนไอโฟน -->
+    <script>
+      // Fix for iOS Safari full height issue
+      const setDocumentHeight = () => {
+        document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+      };
+      
+      // Initial set
+      setDocumentHeight();
+      
+      // Update on resize and orientation change
+      window.addEventListener('resize', setDocumentHeight);
+      window.addEventListener('orientationchange', setDocumentHeight);
+      
+      // ป้องกันการดับเบิลแทป (double-tap) เพื่อซูม
+      document.addEventListener('touchmove', function(event) {
+        if (event.scale !== 1) {
+          event.preventDefault();
+        }
+      }, { passive: false });
+      
+      // ป้องกันการ overscroll/bounce
+      document.body.addEventListener('touchstart', function(e) {
+        if (e.target.nodeName !== 'INPUT' && e.target.nodeName !== 'TEXTAREA') {
+          e.preventDefault();
+        }
+      }, { passive: false });
+    </script>
+  </body>
+</html>

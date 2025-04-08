@@ -1,0 +1,257 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  overflow: hidden;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+.player-img {
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  transition: filter 0.2s ease-out;
+}
+
+.player-has-ball {
+  filter: drop-shadow(0 0 3px yellow) !important;
+}
+
+/* การปรับแต่งสำหรับการแสดงผลบนอุปกรณ์สัมผัส */
+@media (max-width: 768px) {
+  .player-img {
+    width: 8vmin !important; /* ขยายขนาดบนอุปกรณ์หน้าจอเล็ก */
+  }
+}
+
+/* อนิเมชันการหมุนสำหรับลูกบอล */
+@keyframes spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* อนิเมชันการเด้งสำหรับลูกบอล */
+@keyframes bounce {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* อนิเมชันเปลี่ยนความเข้มของเงา */
+@keyframes pulseShadow {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px rgba(255,215,0,0.8));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(255,140,0,0.9));
+  }
+}
+
+/* อนิเมชันการเคลื่อนที่แบบเลขาคณิต */
+@keyframes trail {
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+/* เพิ่ม transition ทั่วไปสำหรับการเคลื่อนที่ */
+.transition-all {
+  transition: all 0.1s ease-out;
+}
+
+/* สไตล์สำหรับลูกบอลที่กำลังเคลื่อนที่ */
+.ball-in-motion {
+  transition: none; /* ปิด transition ปกติ เพราะใช้อนิเมชัน */
+}
+
+/* ปรับแต่งการแสดงผลสำหรับ iOS */
+
+/* ใช้ CSS variables สำหรับความสูงเต็มหน้าจอ */
+:root {
+  --vh: 1vh;
+  --screen-height: 100vh;
+  --court-top-offset: 50px;
+}
+
+/* แก้ไขปัญหา viewport บน iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  html, body {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    overflow: hidden;
+  }
+  
+  #root {
+    height: 100vh; /* Fallback */
+    height: calc(var(--vh, 1vh) * 100);
+    width: 100vw;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    /* รองรับ iOS safe areas */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  
+  /* ปรับขนาดสนามให้พอดีกับพื้นที่แสดงผล */
+  #basketball-court {
+    width: 100% !important;
+    height: calc(100% - var(--court-top-offset)) !important;
+    position: absolute;
+    top: var(--court-top-offset);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    /* เพิ่ม hardware acceleration */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  /* ปรับแต่งสำหรับสนามมีภาพพื้นหลัง */
+  #basketball-court {
+    background-size: 100% 100% !important;
+    background-position: center center !important;
+  }
+  
+  /* ลดขนาดของ animation และเอฟเฟคต์บน iOS เพื่อเพิ่มประสิทธิภาพ */
+  @media (max-width: 768px) {
+    .ball-in-motion {
+      /* ใช้ transform เพื่อเพิ่มประสิทธิภาพการเรนเดอร์ */
+      transform: translate(-50%, -50%) scale(1) !important;
+      /* ลดเอฟเฟคต์เงา */
+      filter: drop-shadow(0 0 3px rgba(255,215,0,0.6)) !important;
+      /* เพิ่ม hardware acceleration */
+      will-change: transform, top, left;
+      -webkit-backface-visibility: hidden;
+    }
+    
+    /* ปรับขนาดเงาให้เล็กลงเพื่อประสิทธิภาพ */
+    @keyframes pulseShadow {
+      0%, 100% {
+        filter: drop-shadow(0 0 3px rgba(255,215,0,0.6));
+      }
+      50% {
+        filter: drop-shadow(0 0 5px rgba(255,140,0,0.7));
+      }
+    }
+    
+    /* ทำให้การหมุนช้าลงเพื่อลดการใช้ CPU */
+    @keyframes spin {
+      from {
+        transform: translate(-50%, -50%) rotate(0deg);
+      }
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
+    
+    /* ปรับปรุงประสิทธิภาพของผู้เล่น */
+    .player-img {
+      will-change: transform, top, left;
+      -webkit-backface-visibility: hidden;
+    }
+  }
+  
+  /* ปรับแต่ง MenuBar บน iOS */
+  @media (max-width: 768px) {
+    /* ทำให้ MenuBar มีขนาดพอดีกับหน้าจอและมี padding สำหรับ notch */
+    .menu-bar {
+      padding-top: max(env(safe-area-inset-top), 4px);
+      padding-left: max(env(safe-area-inset-left), 4px);
+      padding-right: max(env(safe-area-inset-right), 4px);
+      width: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      /* เพิ่ม hardware acceleration */
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      will-change: transform;
+    }
+    
+    /* ปรับขนาดปุ่มให้ใหญ่ขึ้นเพื่อให้ง่ายต่อการกดบนอุปกรณ์สัมผัส */
+    button {
+      min-height: 36px;
+      min-width: 36px;
+      padding: 8px 12px;
+      margin: 2px;
+    }
+    
+    /* ทำให้ emoji ในปุ่มใหญ่ขึ้น */
+    button span[role="img"] {
+      font-size: 1.2em;
+    }
+  }
+  
+  /* ป้องกันการซูมด้วยการดับเบิลแทป (double-tap) */
+  * {
+    touch-action: manipulation;
+  }
+}
+
+/* ปรับแต่งการแสดงผลเมื่อหมุนจอในแนวนอน (landscape) */
+@media (max-width: 896px) and (orientation: landscape) {
+  :root {
+    --court-top-offset: 40px;
+  }
+  
+  @supports (-webkit-touch-callout: none) {
+    /* ปรับลดขนาด MenuBar ในโหมดแนวนอน */
+    .menu-bar {
+      height: 40px;
+      padding-top: max(env(safe-area-inset-top), 2px);
+      padding-bottom: 2px;
+    }
+    
+    /* ปรับตำแหน่งสนามให้พอดีกับพื้นที่แสดงผลในโหมดแนวนอน */
+    #basketball-court {
+      top: var(--court-top-offset);
+      height: calc(100% - var(--court-top-offset)) !important;
+      /* ปรับแต่งการแสดงผลในแนวนอน */
+      background-size: contain !important;
+      background-repeat: no-repeat !important;
+      background-position: center center !important;
+    }
+    
+    /* ปรับขนาดปุ่มให้เล็กลงในโหมดแนวนอน */
+    button {
+      min-height: 30px;
+      min-width: 30px;
+      padding: 4px 8px;
+      margin: 1px;
+      font-size: 0.85rem;
+    }
+    
+    /* ลดขนาด emoji */
+    button span[role="img"] {
+      font-size: 1em;
+    }
+  }
+}
