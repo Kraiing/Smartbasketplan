@@ -39,10 +39,11 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
       
       // เรียกฟังก์ชัน toggle
       console.log(`TeamPositionsManager - Toggling: ${team} - ${position}`);
-      
+
       // ลองใช้ try-catch เพื่อจับข้อผิดพลาดที่อาจเกิดขึ้น
       try {
-        onTogglePosition(team, position);
+        // MenuBar จะส่งฟังก์ชันที่รับเฉพาะ position และจัดการเรื่อง team เอง
+        onTogglePosition(position);
       } catch (error) {
         console.error("Error in onTogglePosition:", error);
       }
@@ -78,7 +79,7 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
         {positions.map((position) => (
           <div 
             key={position} 
-            className={`flex items-center justify-between p-2 rounded transition-colors duration-200 ${getHoverColor()}`}
+            className={`flex items-center justify-between p-2 rounded transition-colors duration-200 ${getHoverColor()} cursor-pointer`}
             onClick={() => handleToggle(position)}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}

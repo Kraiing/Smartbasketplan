@@ -24,11 +24,39 @@ const Switch = ({ checked, onChange, disabled = false }) => {
       switchElem.style.backgroundColor = '#3b82f6'; // bg-blue-500
       knobElem.style.transform = 'translateX(18px)';
       switchElem.style.boxShadow = '0 0 3px rgba(59, 130, 246, 0.5)';
+      
+      // เพิ่มเอฟเฟกต์เรืองแสงตอนเปิด
+      knobElem.style.boxShadow = '0 0 2px 1px rgba(59, 130, 246, 0.5)';
+      
+      // เพิ่มอนิเมชันขยับเล็กน้อย
+      setTimeout(() => {
+        if (knobRef.current) {
+          knobRef.current.style.transform = 'translateX(19px)';
+          setTimeout(() => {
+            if (knobRef.current) {
+              knobRef.current.style.transform = 'translateX(18px)';
+            }
+          }, 150);
+        }
+      }, 50);
     } else {
       // อนิเมชั่นตอนปิด
       switchElem.style.backgroundColor = '#d1d5db'; // bg-gray-300
       knobElem.style.transform = 'translateX(0)';
       switchElem.style.boxShadow = 'none';
+      knobElem.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.2)';
+      
+      // เพิ่มอนิเมชันขยับเล็กน้อย
+      setTimeout(() => {
+        if (knobRef.current) {
+          knobRef.current.style.transform = 'translateX(1px)';
+          setTimeout(() => {
+            if (knobRef.current) {
+              knobRef.current.style.transform = 'translateX(0)';
+            }
+          }, 150);
+        }
+      }, 50);
     }
   }, [checked]);
   
@@ -62,8 +90,8 @@ const Switch = ({ checked, onChange, disabled = false }) => {
       className={`relative inline-block w-11 h-6 rounded-full cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       style={{
         backgroundColor: checked ? '#3b82f6' : '#d1d5db',
-        transition: 'all 0.3s ease-in-out',
-        boxShadow: checked ? '0 0 3px rgba(59, 130, 246, 0.5)' : 'none'
+        transition: 'all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
+        boxShadow: checked ? '0 0 4px 1px rgba(59, 130, 246, 0.5)' : 'none'
       }}
       onClick={handleClick}
     >
@@ -72,7 +100,10 @@ const Switch = ({ checked, onChange, disabled = false }) => {
         className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow"
         style={{
           transform: checked ? 'translateX(18px)' : 'translateX(0)',
-          transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)'
+          transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          boxShadow: checked 
+            ? '0 0 2px 1px rgba(59, 130, 246, 0.5), 0 1px 3px rgba(0, 0, 0, 0.1)' 
+            : '0 1px 2px rgba(0, 0, 0, 0.2)'
         }}
       />
     </div>

@@ -4,8 +4,6 @@ import { translations } from '../i18n/translations';
 import TeamPositionsManager from './TeamPositionsManager';
 
 const MenuBar = ({
-  onAddPlayer,
-  onRemovePlayer,
   onResetPositions,
   onUndo,
   onRedo,
@@ -72,26 +70,6 @@ const MenuBar = ({
     };
   }, [showPlayerMenu, showRedTeamMenu, showWhiteTeamMenu]);
   
-  const handleAddRedPlayer = () => {
-    onAddPlayer('red');
-    setShowPlayerMenu(false);
-  };
-  
-  const handleAddWhitePlayer = () => {
-    onAddPlayer('white');
-    setShowPlayerMenu(false);
-  };
-  
-  const handleRemoveRedPlayer = () => {
-    onRemovePlayer('red');
-    setShowPlayerMenu(false);
-  };
-  
-  const handleRemoveWhitePlayer = () => {
-    onRemovePlayer('white');
-    setShowPlayerMenu(false);
-  };
-  
   // ใช้เฉพาะบนอุปกรณ์ iOS
   const handleTouchStartButton = (e) => {
     // เพิ่มเอฟเฟคเมื่อกดปุ่มเพื่อให้ผู้ใช้รู้ว่าได้กดแล้ว
@@ -155,7 +133,7 @@ const MenuBar = ({
             </button>
             
             {showPlayerMenu && (
-              <div className={`absolute right-0 mt-1 bg-white bg-opacity-30 backdrop-blur-sm shadow-lg rounded py-1 z-50 ${isIOS ? 'w-48' : 'w-44'}`}>
+              <div className={`absolute right-0 mt-1 bg-white bg-opacity-70 backdrop-blur-sm shadow-lg rounded py-1 z-50 ${isIOS ? 'w-48' : 'w-44'}`}>
                 <div className="text-center font-bold text-gray-700 py-1 border-b border-gray-200">
                   {t.positionsManagement}
                 </div>
@@ -180,13 +158,18 @@ const MenuBar = ({
                   </button>
                   
                   {showRedTeamMenu && (
-                    <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-30 backdrop-blur-sm shadow-lg rounded-lg py-2 z-50 w-64 border border-red-100 animate-fade-in">
+                    <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-70 backdrop-blur-sm shadow-lg rounded-lg py-2 z-50 w-64 border border-red-100 animate-fade-in">
                       <TeamPositionsManager 
                         team="red" 
                         activePositions={activePositions && activePositions.red ? activePositions.red : {
                           PG: true, SG: true, SF: true, PF: true, C: true
                         }} 
-                        onTogglePosition={onTogglePosition || (() => {})} 
+                        onTogglePosition={(position) => {
+                          console.log(`MenuBar - Toggling red team position: ${position}`);
+                          if (onTogglePosition) {
+                            onTogglePosition("red", position);
+                          }
+                        }}
                         t={t}
                         isIOS={isIOS}
                       />
@@ -214,13 +197,18 @@ const MenuBar = ({
                   </button>
                   
                   {showWhiteTeamMenu && (
-                    <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-50 backdrop-blur-sm shadow-lg rounded-lg py-2 z-50 w-64 border border-blue-100 animate-fade-in">
+                    <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-70 backdrop-blur-sm shadow-lg rounded-lg py-2 z-50 w-64 border border-blue-100 animate-fade-in">
                       <TeamPositionsManager 
                         team="white" 
                         activePositions={activePositions && activePositions.white ? activePositions.white : {
                           PG: true, SG: true, SF: true, PF: true, C: true
                         }} 
-                        onTogglePosition={onTogglePosition || (() => {})} 
+                        onTogglePosition={(position) => {
+                          console.log(`MenuBar - Toggling white team position: ${position}`);
+                          if (onTogglePosition) {
+                            onTogglePosition("white", position);
+                          }
+                        }}
                         t={t}
                         isIOS={isIOS}
                       />

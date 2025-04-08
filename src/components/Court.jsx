@@ -38,7 +38,14 @@ const Court = forwardRef((props, ref) => {
     clearAllLines,
     resetBallPassState,
     activePositions,
-    togglePosition
+    togglePosition: (team, position) => {
+      console.log(`Court.jsx - Calling togglePosition: ${team} - ${position}`);
+      try {
+        togglePosition(team, position);
+      } catch (error) {
+        console.error("Court.jsx - Error in togglePosition:", error);
+      }
+    }
   }));
 
   // ป้องกันการ scroll บนอุปกรณ์มือถือและเริ่มต้นการตั้งค่า touch events
