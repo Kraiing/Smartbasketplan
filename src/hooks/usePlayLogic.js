@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import * as uuid from 'uuid';
+const uuidv4 = uuid.v4;
 import useDrawingLogic from './useDrawingLogic';
 import useBallLogic from './useBallLogic';
 
@@ -49,7 +50,7 @@ export default function usePlayLogic() {
   const [currentAction, setCurrentAction] = useState(null);
   
   // สถานะเมื่อมีอนิเมชันกำลังทำงานอยู่
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isAnimating, _] = useState(false);
   
   // ประวัติการกระทำ (สำหรับ undo)
   const [history, setHistory] = useState([]);
@@ -61,10 +62,10 @@ export default function usePlayLogic() {
   const activePointersRef = useRef(new Map());
   
   // Logic สำหรับการวาดเส้น
-  const drawingLogic = useDrawingLogic(setIsAnimating);
+  const drawingLogic = useDrawingLogic();
   
   // Logic สำหรับการจัดการลูกบอล
-  const ballLogic = useBallLogic(setIsAnimating);
+  const ballLogic = useBallLogic(players, { x: 25, y: 20, holder: 'a1' }, setPlayers);
   
   // ฟังก์ชันรีเซ็ตฉุกเฉินสำหรับการส่งบอล
   const resetBallPassState = useCallback(() => {
@@ -74,9 +75,9 @@ export default function usePlayLogic() {
   }, [ballLogic]);
   
   // ฟังก์ชันสำหรับตรวจสอบว่าคลิกที่ผู้เล่นหรือไม่
-  const isClickingPlayer = (id) => {
+  const isClickingPlayer = useCallback((id) => {
     return players.some(player => player.id === id);
-  };
+  }, [players]);
   
   // รีเซ็ตตำแหน่งผู้เล่นให้กลับไปที่ตำแหน่งเริ่มต้น
   const resetToInitialPositions = useCallback(() => {
@@ -421,7 +422,7 @@ export default function usePlayLogic() {
         resetBallPassState();
       }
     }
-  }, [players, ballLogic, drawingLogic, isAnimating, resetBallPassState]);
+  }, [players, ballLogic, drawingLogic, isAnimating, resetBallPassState, isClickingPlayer]);
   
   // จัดการการเคลื่อนไหว
   const handlePointerMove = useCallback((e) => {
@@ -582,7 +583,7 @@ export default function usePlayLogic() {
       // รีเซ็ตสถานะถ้าเกิดข้อผิดพลาด
       resetBallPassState();
     }
-  }, [ballLogic, drawingLogic, resetBallPassState]);
+  }, [ballLogic, drawingLogic, resetBallPassState, setCurrentAction]);
   
   return {
     players,
