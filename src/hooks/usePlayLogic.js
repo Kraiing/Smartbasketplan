@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
 import * as uuid from 'uuid';
 const uuidv4 = uuid.v4;
-import useDrawingLogic from './useDrawingLogic';
-import useBallLogic from './useBallLogic';
+import { useDrawingLogic } from './useDrawingLogic';
+import { useBallLogic } from './useBallLogic';
 
 // ฟังก์ชันช่วยสำหรับคำนวณตำแหน่ง pointer เป็นเปอร์เซ็นต์ของพื้นที่สนาม
 const getPointerPositionPercent = (clientX, clientY) => {
@@ -23,19 +23,19 @@ export const usePlayLogic = () => {
   // สถานะผู้เล่น
   const [players, setPlayers] = useState([
     // ทีม A (ฝั่งซ้าย/แดง)
-    { id: 'a1', x: 25, y: 20, team: 'A', number: 1, hasBall: true },
-    { id: 'a2', x: 40, y: 30, team: 'A', number: 2, hasBall: false },
-    { id: 'a3', x: 25, y: 40, team: 'A', number: 3, hasBall: false },
-    { id: 'a4', x: 25, y: 60, team: 'A', number: 4, hasBall: false },
-    { id: 'a5', x: 25, y: 80, team: 'A', number: 5, hasBall: false },
-
-    // ทีม B (ฝั่งขวา/น้ำเงิน)
-    { id: 'b1', x: 75, y: 20, team: 'B', number: 1, hasBall: false },
-    { id: 'b2', x: 60, y: 30, team: 'B', number: 2, hasBall: false },
-    { id: 'b3', x: 75, y: 40, team: 'B', number: 3, hasBall: false },
-    { id: 'b4', x: 75, y: 60, team: 'B', number: 4, hasBall: false },
-    { id: 'b5', x: 75, y: 80, team: 'B', number: 5, hasBall: false }
-  ]);
+    { id: 'a1', x: 25, y: 20, team: 'A', number: 1, position: 'PG', hasBall: true },
+    { id: 'a2', x: 40, y: 30, team: 'A', number: 2, position: 'SG', hasBall: false },
+    { id: 'a3', x: 25, y: 40, team: 'A', number: 3, position: 'SF', hasBall: false },
+    { id: 'a4', x: 25, y: 60, team: 'A', number: 4, position: 'PF', hasBall: false },
+    { id: 'a5', x: 25, y: 80, team: 'A', number: 5, position: 'C', hasBall: false },
+  
+    // ทีม B (ฝั่งขวา/ขาว)
+    { id: 'b1', x: 75, y: 20, team: 'B', number: 1, position: 'PG', hasBall: false },
+    { id: 'b2', x: 60, y: 30, team: 'B', number: 2, position: 'SG', hasBall: false },
+    { id: 'b3', x: 75, y: 40, team: 'B', number: 3, position: 'SF', hasBall: false },
+    { id: 'b4', x: 75, y: 60, team: 'B', number: 4, position: 'PF', hasBall: false },
+    { id: 'b5', x: 75, y: 80, team: 'B', number: 5, position: 'C', hasBall: false }
+  ]);  
 
   // สถานะตำแหน่งที่เปิดใช้งาน
   const [activePositions, setActivePositions] = useState({
@@ -65,7 +65,7 @@ export const usePlayLogic = () => {
   const drawingLogic = useDrawingLogic();
 
   // Logic สำหรับการจัดการลูกบอล
-  const ballLogic = useBallLogic(players, { x: 25, y: 20, holder: 'a1' }, setPlayers);
+  const ballLogic = useBallLogic(players, { x: 25, y: 22, holderId: 'a1' }, setPlayers);
 
   // ฟังก์ชันรีเซ็ตฉุกเฉินสำหรับการส่งบอล
   const resetBallPassState = useCallback(() => {
@@ -83,7 +83,8 @@ export const usePlayLogic = () => {
   const resetToInitialPositions = useCallback(() => {
     setHistory(prev => [...prev, {
       players: [...players],
-      ball: {...ballLogic.ball}
+      ball: {...ballLogic.ball},
+      lines: [...drawingLogic.lines] // เก็บประวัติเส้นก่อนรีเซ็ต
     }]);
 
     setPlayers(initialPlayerPositions.current);
@@ -98,13 +99,16 @@ export const usePlayLogic = () => {
 
       ballLogic.setBall({
         x: firstPlayerA.x,
-        y: firstPlayerA.y,
-        holder: firstPlayerA.id
+        y: firstPlayerA.y + 2, // เพิ่มค่า y อีก 2 เพื่อให้ลูกบอลอยู่ด้านล่างของตัวผู้เล่น
+        holderId: firstPlayerA.id
       });
     }
 
+    // ลบเส้นทั้งหมดเมื่อรีเซ็ต
+    drawingLogic.setLines([]);
+    
     setFuture([]);
-  }, [players, ballLogic, setPlayers]);
+  }, [players, ballLogic, drawingLogic, setPlayers]);
 
   // เปิด/ปิดตำแหน่งผู้เล่น
   const togglePosition = useCallback((team, number) => {
@@ -159,7 +163,7 @@ export const usePlayLogic = () => {
         ballLogic.setBall({
           x: newHolder.x,
           y: newHolder.y,
-          holder: newHolder.id
+          holderId: newHolder.id
         });
 
         // อัปเดตข้อมูลผู้เล่น
@@ -240,7 +244,7 @@ export const usePlayLogic = () => {
         ballLogic.setBall({
           x: otherTeamPlayer.x,
           y: otherTeamPlayer.y,
-          holder: otherTeamPlayer.id
+          holderId: otherTeamPlayer.id
         });
 
         // อัปเดตข้อมูลผู้เล่น
@@ -359,10 +363,13 @@ export const usePlayLogic = () => {
 
         // 1. ถ้าคลิกที่ผู้เล่น
         if (isClickingPlayer(id)) {
+          // ตรวจสอบว่าการคลิกเป็นที่ตัวลูกบอลหรือไม่ (แก้ปัญหาการขยับตัวผู้เล่น)
+          const isClickingBall = e.target && e.target.tagName === 'IMG' && e.target.alt === 'ball';
+          
           const playerWithBall = players.find(p => p.id === id && p.hasBall);
 
-          if (playerWithBall && ballLogic.startBallPass(id)) {
-            // ถ้าผู้เล่นมีลูกบอลและเริ่มการส่งบอล
+          if (playerWithBall && isClickingBall && ballLogic.startBallPass(id)) {
+            // ถ้าคลิกที่ลูกบอลโดยตรงและผู้เล่นมีลูกบอล จึงเริ่มการส่งบอล
             setCurrentAction('draggingBall');
             // อัปเดต action สำหรับ pointer นี้
             const pointerData = activePointersRef.current.get(pointerId);
@@ -370,7 +377,7 @@ export const usePlayLogic = () => {
               pointerData.action = 'draggingBall';
             }
           } else {
-            // เริ่มลากผู้เล่น
+            // เริ่มลากผู้เล่น (ไม่ว่าจะมีลูกบอลหรือไม่ก็ตาม)
             setCurrentAction('draggingPlayer');
             // อัปเดต action สำหรับ pointer นี้
             const pointerData = activePointersRef.current.get(pointerId);
@@ -553,3 +560,35 @@ export const usePlayLogic = () => {
       resetBallPassState();
     }
   }, [currentAction, ballLogic, drawingLogic, players, isAnimating, resetBallPassState]);
+
+    return {
+    players,
+    setPlayers,
+    activePositions,
+    setActivePositions,
+    currentAction,
+    setCurrentAction,
+    isAnimating,
+    setIsAnimating,
+    history,
+    future,
+    resetBallPassState,
+    resetToInitialPositions,
+    togglePosition,
+    addPlayer,
+    removePlayer,
+    undo,
+    redo,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    drawingLogic,
+    ballLogic,
+    ball: ballLogic.ball,
+    passLine: ballLogic.passLine,
+    currentLine: drawingLogic.currentLine,
+    lines: drawingLogic.lines,
+    deleteLine: drawingLogic.deleteLine,
+    handlePointerCancel: drawingLogic.handlePointerCancel
+  };
+}
