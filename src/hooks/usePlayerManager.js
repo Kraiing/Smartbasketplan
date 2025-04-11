@@ -67,15 +67,21 @@ export const usePlayerManager = (players, setPlayers, ballLogic, drawingLogic, s
 
   // ลบผู้เล่น
   const removePlayer = useCallback((playerId) => {
+    console.log(`Attempting to remove player with ID: ${playerId}`);
     const playerToRemove = players.find(p => p.id === playerId);
 
     // ถ้าไม่พบผู้เล่น หรือผู้เล่นมีบอลอยู่และเป็นผู้เล่นคนสุดท้ายในทีม ไม่อนุญาตให้ลบ
-    if (!playerToRemove) return;
+    if (!playerToRemove) {
+      console.warn(`Player with ID ${playerId} not found.`);
+      return;
+    }
 
     const teamPlayers = players.filter(p => p.team === playerToRemove.team);
+    console.log(`Found ${teamPlayers.length} players in team ${playerToRemove.team}`);
 
     if (playerToRemove.hasBall && teamPlayers.length === 1) {
       // ถ้าผู้เล่นมีบอลและเป็นคนสุดท้ายในทีม ไม่อนุญาตให้ลบ
+      console.warn(`Cannot remove the last player with ball in team ${playerToRemove.team}`);
       return;
     }
 
