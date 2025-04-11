@@ -6,7 +6,10 @@ const Player = ({ player, onPointerDown }) => {
               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   
   // เลือกรูปภาพตามทีม
-  const imgSrc = player.team === 'red' ? '/red-player.png' : '/white-player.png';
+  const imgSrc =
+  player.team === 'A' || player.team === 'red'
+    ? '/red-player.png'
+    : '/white-player.png';
   
   const handlePlayerPointerDown = (e) => {
     // ใช้ preventDefault เพื่อป้องกันพฤติกรรมปกติโดยไม่ขัดขวางการส่งต่อเหตุการณ์
@@ -66,6 +69,7 @@ const Player = ({ player, onPointerDown }) => {
           // ปรับขนาดตัวอักษรบน iOS
           fontSize: isIOS ? '0.65rem' : '0.75rem'
         }}
+        onPointerDown={handlePlayerPointerDown}
       >
         {player.position || ''}
       </div>

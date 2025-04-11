@@ -32,7 +32,7 @@ export const translations = {
     aboutButton: 'ข้อมูล',
     aboutTitle: 'เกี่ยวกับแอป',
     developedBy: 'พัฒนาโดย',
-    developerName: 'ไกรอิงค์อาการ รื่นพิทักษ์',
+    developerName: 'ไกรอิงค์อากร รื่นพิทักษ์',
     howToUse: 'วิธีใช้งาน',
     instructions: [
       '1. ลากผู้เล่น: แตะและลากผู้เล่นไปยังตำแหน่งที่ต้องการ',
