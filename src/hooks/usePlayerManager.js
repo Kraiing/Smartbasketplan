@@ -118,6 +118,7 @@ export const usePlayerManager = (players, setPlayers, ballLogic, drawingLogic, s
     }
 
     setFuture([]);
+    console.log(`Player with ID ${playerId} has been removed successfully.`);
   }, [players, setPlayers, ballLogic, setHistory, setFuture]);
 
   return {

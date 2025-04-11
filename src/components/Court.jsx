@@ -63,10 +63,10 @@ const Court = forwardRef((props, ref) => {
   useEffect(() => {
     const courtElement = document.getElementById('basketball-court');
     if (!courtElement) return;
-    
+
     // เพิ่ม touch-action: manipulation ด้วย JavaScript
     courtElement.style.touchAction = "manipulation";
-    
+
     // ป้องกันการ scroll บนอุปกรณ์มือถือ
     const preventScroll = (e) => {
       // อนุญาตให้ scroll ปกติเฉพาะเมื่อไม่ได้ interactive กับแอพ
@@ -74,25 +74,38 @@ const Court = forwardRef((props, ref) => {
         e.preventDefault();
       }
     };
-    
+
     // เพิ่ม event listeners สำหรับ touch events
     courtElement.addEventListener('touchmove', preventScroll, { passive: false });
-    
+
     // ตั้งค่า touch-action สำหรับรองรับ multi-touch
     document.documentElement.style.touchAction = "manipulation";
     document.body.style.touchAction = "manipulation";
-    
+
     return () => {
       if (courtElement) {
         courtElement.removeEventListener('touchmove', preventScroll);
       }
     };
   }, [currentAction]);
+  
+  // เพิ่ม effect เพื่อจัดการกับ activePositions
+  useEffect(() => {
+    // Log สถานะ activePositions ทุกครั้งที่มีการเปลี่ยนแปลง
+    console.log("Court.jsx - activePositions updated:", activePositions);
+    
+    // สามารถเพิ่มการเก็บค่าลง localStorage เพื่อการดีบัก
+    try {
+      localStorage.setItem('debug_court_activePositions', JSON.stringify(activePositions));
+    } catch (e) {
+      // ไม่ต้องทำอะไรถ้าไม่สามารถบันทึกลง localStorage ได้
+    }
+  }, [activePositions]);
 
   // เพิ่ม safety timeout สำหรับรีเซ็ตอนิเมชันที่ค้าง
   useEffect(() => {
     let safetyTimeout;
-    
+
     if (isAnimating) {
       // ตั้งเวลา 3 วินาทีเพื่อรีเซ็ตอนิเมชันที่ค้าง (ลดลงจาก 5 วินาที)
       safetyTimeout = setTimeout(() => {
@@ -100,7 +113,7 @@ const Court = forwardRef((props, ref) => {
         resetBallPassState();
       }, 3000);
     }
-    
+
     return () => {
       if (safetyTimeout) {
         clearTimeout(safetyTimeout);
@@ -109,21 +122,21 @@ const Court = forwardRef((props, ref) => {
   }, [isAnimating, resetBallPassState]);
 
   // ตรวจสอบอุปกรณ์ iOS และปรับแต่งการแสดงผล
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isLandscape = window.innerWidth > window.innerHeight;
-  
+
   // ระบบการจัดการกับ double tap ของเส้น
   const lastTapRef = useRef({ time: 0, lineId: null });
-  
+
   // ฟังก์ชันที่ใช้จัดการกับการแตะที่เส้น
   const handleLineTap = (e, lineId) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const now = Date.now();
     const lastTap = lastTapRef.current;
-    
+
     // ตรวจสอบว่าเป็น double tap หรือไม่ (แตะในระยะเวลาไม่เกิน 500ms และเป็นเส้นเดียวกัน)
     if (now - lastTap.time < 500 && lastTap.lineId === lineId) {
       // ถ้าเป็น double tap ให้ลบเส้น
@@ -139,85 +152,85 @@ const Court = forwardRef((props, ref) => {
   // ฟังก์ชันสำหรับทำให้เส้นสมูทด้วยการปรับแต่งพิเศษ
   const createSmoothLine = (points) => {
     if (!points || points.length < 2) return '';
-    
+
     try {
       if (points.length === 2) {
         // ถ้ามีแค่ 2 จุด ก็ใช้เส้นตรงธรรมดา
         return `M${points[0].x},${points[0].y} L${points[1].x},${points[1].y}`;
       }
-      
+
       // ปรับประสิทธิภาพการสร้างเส้นบน iOS
       if (isIOS && points.length > 10) {
         // ถ้าเป็น iOS และมีจุดเยอะ ให้ลดจำนวนจุดลง
         const simplifiedPoints = [];
         simplifiedPoints.push(points[0]); // เก็บจุดแรก
-        
+
         // เก็บเฉพาะจุดที่มีระยะห่างพอสมควร (ประมาณทุกๆ 2-3 จุด)
         for (let i = 1; i < points.length - 1; i += 2) {
           simplifiedPoints.push(points[i]);
         }
-        
+
         simplifiedPoints.push(points[points.length - 1]); // เก็บจุดสุดท้าย
-        
+
         // สร้างเส้นแบบง่ายๆ (ลดความซับซ้อนของการคำนวณ)
         return `M${simplifiedPoints[0].x},${simplifiedPoints[0].y} ${simplifiedPoints.slice(1).map(p => `L${p.x},${p.y}`).join(' ')}`;
       }
-      
+
       // เพิ่มการกำจัดจุดที่ไม่จำเป็นเพื่อลดสะเทือน
       const filteredPoints = [];
       filteredPoints.push(points[0]); // จุดแรกเก็บไว้เสมอ
-      
+
       let prevPoint = points[0];
       for (let i = 1; i < points.length - 1; i++) {
         const point = points[i];
         const nextPoint = points[i + 1];
-        
+
         // คำนวณความชันระหว่างจุดปัจจุบันกับจุดก่อนหน้า และจุดปัจจุบันกับจุดถัดไป
         const slope1 = (point.y - prevPoint.y) / (point.x - prevPoint.x || 0.001);
         const slope2 = (nextPoint.y - point.y) / (nextPoint.x - point.x || 0.001);
-        
+
         // ถ้าความชันเปลี่ยนไปมาก จึงเก็บจุดนี้ไว้
         if (Math.abs(slope1 - slope2) > 0.2 || i % 3 === 0) {
           filteredPoints.push(point);
           prevPoint = point;
         }
       }
-      
+
       filteredPoints.push(points[points.length - 1]); // จุดสุดท้ายเก็บไว้เสมอ
-      
+
       // ลดความซับซ้อนของการสร้าง bezier curve บนอุปกรณ์ iOS
       if (isIOS) {
         // สร้าง path string แบบง่ายขึ้นสำหรับ iOS
         return `M${filteredPoints[0].x},${filteredPoints[0].y} ${filteredPoints.slice(1).map(p => `L${p.x},${p.y}`).join(' ')}`;
       }
-      
+
       // สร้าง path string ด้วย cardinal spline เพื่อให้เส้นสมูทมากขึ้น (สำหรับ non-iOS)
       let pathString = `M${filteredPoints[0].x},${filteredPoints[0].y}`;
-      
+
       // ลูปสร้าง bezier curves สำหรับแต่ละส่วนของเส้น
       for (let i = 0; i < filteredPoints.length - 1; i++) {
         const p0 = i > 0 ? filteredPoints[i - 1] : filteredPoints[0];
         const p1 = filteredPoints[i];
         const p2 = filteredPoints[i + 1];
         const p3 = i < filteredPoints.length - 2 ? filteredPoints[i + 2] : p2;
-        
+
         // คำนวณจุดควบคุมสำหรับ cubic bezier curve ด้วยค่า tension ที่เหมาะสม
         const tension = 0.2; // ค่าต่ำให้ความสมูทสูง
-        
+
         // จุดควบคุมที่ 1
         const cp1x = p1.x + (p2.x - p0.x) * tension;
         const cp1y = p1.y + (p2.y - p0.y) * tension;
-        
+
         // จุดควบคุมที่ 2
         const cp2x = p2.x - (p3.x - p1.x) * tension;
         const cp2y = p2.y - (p3.y - p1.y) * tension;
-        
+
         // เพิ่ม cubic bezier curve segment ไปยัง path
         pathString += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
       }
-      
+
       return pathString;
-      
+
     } catch (error) {
       console.error("Error creating smooth path:", error);
       // Fallback to simple polyline if error
@@ -230,9 +243,9 @@ const Court = forwardRef((props, ref) => {
       <div
         id="basketball-court"
         className="relative w-full h-full bg-center bg-no-repeat bg-cover"
-        style={{ 
+        style={{
           backgroundImage: "url('/court-real.png')",
-          touchAction: "manipulation" // เพิ่ม touch-action ใน style โดยตรง
+          touchAction: "manipulation" // เพิ่ม touch-action เพื่อรองรับการแตะหลายนิ้ว
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -261,19 +274,37 @@ const Court = forwardRef((props, ref) => {
         }}
       >
         {/* แสดงผู้เล่น */}
-        {players.map((player) => (
+        {players.filter(player => {
+          // ตรวจสอบว่าผู้เล่นนี้อยู่ในตำแหน่งที่เปิดใช้งานหรือไม่
+          const teamKey = player.team === 'A' ? 'red' : 'white';
+          
+          // ตรวจสอบว่า activePositions มีค่าและมีค่าของทีมและตำแหน่งที่ต้องการ
+          if (!activePositions || !activePositions[teamKey]) {
+            console.warn(`Missing activePositions for team ${teamKey}`);
+            return true; // ยังคงแสดงผู้เล่นถ้าไม่มีข้อมูล activePositions
+          }
+          
+          // ตรวจสอบว่าตำแหน่งนี้เปิดใช้งานอยู่หรือไม่
+          const isPositionActive = !!activePositions[teamKey][player.position];
+          
+          if (!isPositionActive) {
+            console.log(`Filtering out player ${player.id} (${player.position}) - position disabled`);
+          }
+          
+          return isPositionActive;
+        }).map(player => (
           <Player
             key={player.id}
             player={player}
             onPointerDown={(e) => handlePointerDown(e, player.id)}
           />
         ))}
-        
+
         {/* ลูกบอลวางไว้ตรงนี้เพื่อให้อยู่ด้านหน้าของผู้เล่น */}
         <Ball ball={ball} onPointerDown={handlePointerDown} />
-        
+
         {/* SVG สำหรับวาดเส้นทั้งหมด */}
-        <svg 
+        <svg
           className="absolute top-0 left-0 w-full h-full pointer-events-none"
           style={{ zIndex: 30 }}
           preserveAspectRatio="none"
@@ -305,7 +336,7 @@ const Court = forwardRef((props, ref) => {
               <polygon points="0 0, 5 1.5, 0 3" fill="gold" />
             </marker>
           </defs>
-          
+
           {/* เส้นที่กำลังวาด - ใช้ path แทน polyline และเปลี่ยนเป็นสีดำ */}
           {currentLine && currentLine.path && currentLine.path.length > 1 && (
             <path
@@ -319,11 +350,11 @@ const Court = forwardRef((props, ref) => {
               markerEnd="url(#arrow-black)"
             />
           )}
-          
+
           {/* เส้นที่วาดแล้ว - ใช้ path แทน polyline และเปลี่ยนเป็นสีดำ */}
           {lines && lines.map((line) => {
             if (!line || !line.path || line.path.length < 2) return null;
-            
+
             return (
               <path
                 key={line.id}
@@ -346,7 +377,7 @@ const Court = forwardRef((props, ref) => {
               />
             );
           })}
-          
+
           {/* เส้นส่งบอล - ใช้เส้นตรง */}
           {passLine && (
             <line
@@ -362,16 +393,16 @@ const Court = forwardRef((props, ref) => {
             />
           )}
         </svg>
-        
+
         {/* แสดงสถานะการกระทำปัจจุบัน (สำหรับ debug) */}
         <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
           {isAnimating ? '🏀 passing...' : currentAction || 'idle'}
           {currentLine && <span> - {currentLine.path?.length || 0} pts</span>}
         </div>
-        
+
         {/* เพิ่มปุ่มรีเซ็ตกรณีอนิเมชันค้าง (แสดงหลังจากอนิเมชันทำงานเกิน 1 วินาที) */}
         {isAnimating && (
-          <button 
+          <button
             className="absolute top-14 right-2 bg-red-500 text-white px-3 py-1 rounded text-xs z-50 opacity-90 hover:opacity-100"
             onClick={(e) => {
               e.preventDefault();
@@ -382,14 +413,14 @@ const Court = forwardRef((props, ref) => {
             Reset Animation
           </button>
         )}
-        
+
         {/* เพิ่มคำแนะนำการลบเส้นบนอุปกรณ์ iOS */}
         {isIOS && (
           <div className="absolute top-24 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs opacity-70">
             แตะสองครั้งที่เส้นเพื่อลบ
           </div>
         )}
-        
+
         {/* เพิ่มฮินท์กรณีอยู่บน iOS เพื่อปรับปรุงประสบการณ์ผู้ใช้ */}
         {isIOS && isLandscape && (
           <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">

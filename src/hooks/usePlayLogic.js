@@ -15,7 +15,7 @@ export const usePlayLogic = () => {
     { id: 'a3', x: 25, y: 40, team: 'A', number: 3, position: 'SF', hasBall: false },
     { id: 'a4', x: 25, y: 60, team: 'A', number: 4, position: 'PF', hasBall: false },
     { id: 'a5', x: 25, y: 80, team: 'A', number: 5, position: 'C', hasBall: false },
-  
+
     // ทีม B (ฝั่งขวา/ขาว)
     { id: 'b1', x: 75, y: 20, team: 'B', number: 1, position: 'PG', hasBall: false },
     { id: 'b2', x: 60, y: 30, team: 'B', number: 2, position: 'SG', hasBall: false },
@@ -33,6 +33,24 @@ export const usePlayLogic = () => {
       PG: true, SG: true, SF: true, PF: true, C: true
     }
   };
+  
+  // แก้ไขเพิ่มเติม: เชื่อมโยงตำแหน่งกับ ID ของผู้เล่น
+  const positionToPlayerId = {
+    'A': {
+      'PG': 'a1',
+      'SG': 'a2',
+      'SF': 'a3',
+      'PF': 'a4',
+      'C': 'a5'
+    },
+    'B': {
+      'PG': 'b1',
+      'SG': 'b2',
+      'SF': 'b3',
+      'PF': 'b4',
+      'C': 'b5'
+    }
+  };
 
   // Logic สำหรับการวาดเส้น
   const drawingLogic = useDrawingLogic();
@@ -40,39 +58,40 @@ export const usePlayLogic = () => {
   // Logic สำหรับการจัดการลูกบอล
   const ballLogic = useBallLogic(players, { x: 25, y: 20, holderId: 'a1' }, setPlayers);
 
-  // การจัดการ history และ undo/redo
+  // การจัดการตำแหน่งผู้เล่น
   const positionManager = usePositionManager(
-    initialActivePositions, 
-    players, 
-    setPlayers, 
-    ballLogic
+    initialActivePositions,
+    players,
+    setPlayers,
+    ballLogic,
+    positionToPlayerId // ส่งข้อมูลการเชื่อมโยงตำแหน่งและ ID
   );
 
   // ใช้ setActivePositions จาก positionManager
   const historyManager = useHistoryManager(
-    setPlayers, 
-    ballLogic, 
-    drawingLogic, 
+    setPlayers,
+    ballLogic,
+    drawingLogic,
     positionManager.setActivePositions
   );
 
   // การจัดการผู้เล่น
   const playerManager = usePlayerManager(
-    players, 
-    setPlayers, 
-    ballLogic, 
-    drawingLogic, 
-    historyManager.setHistory, 
+    players,
+    setPlayers,
+    ballLogic,
+    drawingLogic,
+    historyManager.setHistory,
     historyManager.setFuture
   );
-  
+
   // การจัดการการโต้ตอบกับผู้ใช้
   const interactionManager = useInteractionManager(
-    players, 
-    setPlayers, 
-    ballLogic, 
-    drawingLogic, 
-    historyManager.setHistory, 
+    players,
+    setPlayers,
+    ballLogic,
+    drawingLogic,
+    historyManager.setHistory,
     historyManager.setFuture
   );
 
@@ -84,12 +103,12 @@ export const usePlayLogic = () => {
     activePositions: positionManager.activePositions,
     setActivePositions: positionManager.setActivePositions,
     togglePosition: positionManager.togglePosition,
-    
+
     // Player Management
     resetToInitialPositions: playerManager.resetToInitialPositions,
     addPlayer: playerManager.addPlayer,
     removePlayer: playerManager.removePlayer,
-    
+
     // History Management
     history: historyManager.history,
     future: historyManager.future,
@@ -97,7 +116,7 @@ export const usePlayLogic = () => {
     setFuture: historyManager.setFuture,
     undo: historyManager.undo,
     redo: () => historyManager.redo(interactionManager.isAnimating),
-    
+
     // Interaction Management
     currentAction: interactionManager.currentAction,
     setCurrentAction: interactionManager.setCurrentAction,
@@ -108,17 +127,17 @@ export const usePlayLogic = () => {
     handlePointerUp: interactionManager.handlePointerUp,
     handlePointerCancel: interactionManager.handlePointerCancel,
     resetBallPassState: interactionManager.resetBallPassState,
-    
+
     // Raw objects
     ball: ballLogic.ball,
     passLine: ballLogic.passLine,
     currentLine: drawingLogic.currentLine,
     lines: drawingLogic.lines,
-    
+
     // Functions
     deleteLine: drawingLogic.deleteLine,
     clearAllLines: drawingLogic.clearAllLines,
-    
+
     // Full modules
     drawingLogic,
     ballLogic

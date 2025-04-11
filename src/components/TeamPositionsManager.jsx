@@ -25,6 +25,9 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
 
   // ใช้ค่า default ถ้า activePositions ไม่มีค่าหรือเป็น null/undefined
   const positionsState = activePositions ? { ...defaultPositions, ...activePositions } : defaultPositions;
+  
+  // Debug เพื่อตรวจสอบค่า activePositions ที่ได้รับ
+  console.log(`TeamPositionsManager for ${team} - activePositions:`, activePositions);
 
   const handleToggle = (position) => {
     if (onTogglePosition && typeof onTogglePosition === 'function') {
@@ -36,7 +39,7 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
       } catch (e) {
         // ไม่ต้องทำอะไรถ้าไม่รองรับ
       }
-      
+
       // เรียกฟังก์ชัน toggle
       console.log(`TeamPositionsManager - Toggling: ${team} - ${position}`);
 
@@ -44,6 +47,9 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
       try {
         // MenuBar จะส่งฟังก์ชันที่รับเฉพาะ position และจัดการเรื่อง team เอง
         onTogglePosition(position);
+        
+        // Log เพื่อดีบัก
+        console.log(`TeamPositionsManager - Toggle called for: ${team} ${position}, new state should be: ${!positionsState[position]}`);
       } catch (error) {
         console.error("Error in onTogglePosition:", error);
       }
@@ -74,20 +80,20 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
       <div className={`text-center font-bold py-1 border-b border-gray-200 mb-2 ${team === 'red' ? 'text-red-600' : 'text-blue-600'}`}>
         {team === 'red' ? t.teamRed : t.teamWhite}
       </div>
-      
+
       <div className="space-y-1">
         {positions.map((position) => (
-          <div 
-            key={position} 
+          <div
+            key={position}
             className={`flex items-center justify-between p-2 rounded transition-colors duration-200 ${getHoverColor()} cursor-pointer`}
             onClick={() => handleToggle(position)}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
             <div className="flex items-center">
-              <img 
-                src={team === 'red' ? '/red-player.png' : '/white-player.png'} 
-                alt={`${team} player`} 
+              <img
+                src={team === 'red' ? '/red-player.png' : '/white-player.png'}
+                alt={`${team} player`}
                 className="w-6 h-6 mr-2"
                 style={{
                   opacity: positionsState[position] ? 1 : 0.4,
@@ -103,9 +109,17 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
               <span className={`text-xs mr-2 ${positionsState[position] ? 'text-blue-500' : 'text-gray-400'}`}>
                 {positionsState[position] ? t.positionEnabled : ''}
               </span>
-              <Switch 
-                checked={!!positionsState[position]} 
-                onChange={() => handleToggle(position)}
+              <Switch
+                checked={!!positionsState[position]}
+                onChange={() => {
+                  console.log(`Switch onChange triggered for ${team} ${position} - current value: ${positionsState[position]}`);
+                  handleToggle(position);
+                  
+                  // เพิ่มการบังคับให้ re-render โดยใช้ setTimeout
+                  setTimeout(() => {
+                    console.log("Forcing UI update after switch toggle");
+                  }, 0);
+                }}
               />
             </div>
           </div>
