@@ -145,7 +145,20 @@ function App() {
         onTogglePosition={(team, position) => {
           console.log(`App - Toggling position: ${team} - ${position}`);
           if (courtRef.current && courtRef.current.togglePosition) {
+            // เรียก togglePosition พร้อมกับบังคับอัพเดท UI เสมอ
             courtRef.current.togglePosition(team, position);
+            
+            // เพิ่ม timeout เพื่อบังคับให้ re-render อีกครั้ง (สำคัญมากสำหรับการแก้ปัญหา)
+            setTimeout(() => {
+              // อัพเดท defaultActivePositions ด้วย เพื่อให้แน่ใจว่า UI จะอัพเดท
+              setDefaultActivePositions(prev => {
+                const newState = JSON.parse(JSON.stringify(prev));
+                if (newState[team]) {
+                  newState[team][position] = !newState[team][position];
+                }
+                return newState;
+              });
+            }, 10);
           } else {
             console.warn('Court togglePosition function is not available');
             // Fallback: อัพเดตค่าใน defaultActivePositions เพื่อให้การแสดงผลทำงานได้ถึงแม้จะไม่มีฟังก์ชัน togglePosition

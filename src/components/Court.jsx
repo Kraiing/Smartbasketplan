@@ -1,4 +1,4 @@
-import React, { useEffect, useImperativeHandle, forwardRef, useRef } from 'react';
+import React, { useEffect, useImperativeHandle, forwardRef, useRef, useState } from 'react';
 import Player from './Player.jsx';
 import Ball from './Ball.jsx';
 import { usePlayLogic } from '../hooks/usePlayLogic.js';
@@ -27,6 +27,9 @@ const Court = forwardRef((props, ref) => {
     activePositions,
     togglePosition
   } = usePlayLogic();
+  
+  // เพิ่ม forceUpdate state เพื่อบังคับให้ component re-render
+  const [forceUpdateCounter, setForceUpdateCounter] = useState(0);
 
   // เปิดเผย function ไปยัง parent component ผ่าน ref
   useImperativeHandle(ref, () => ({
@@ -34,8 +37,8 @@ const Court = forwardRef((props, ref) => {
     addPlayer,
     removePlayer: (team) => {
       // หาผู้เล่นคนล่าสุดของทีมที่ระบุ
-      const teamPlayers = players.filter(p => 
-        (team === "red" && p.team === "A") || 
+      const teamPlayers = players.filter(p =>
+        (team === "red" && p.team === "A") ||
         (team === "white" && p.team === "B")
       );
       if (teamPlayers.length > 0) {
@@ -53,6 +56,10 @@ const Court = forwardRef((props, ref) => {
       console.log(`Court.jsx - Calling togglePosition: ${team} - ${position}`);
       try {
         togglePosition(team, position);
+        // บังคับให้ component re-render ด้วยการเพิ่มค่า counter
+        setTimeout(() => {
+          setForceUpdateCounter(prev => prev + 1);
+        }, 10);
       } catch (error) {
         console.error("Court.jsx - Error in togglePosition:", error);
       }
@@ -88,18 +95,29 @@ const Court = forwardRef((props, ref) => {
       }
     };
   }, [currentAction]);
-  
+
   // เพิ่ม effect เพื่อจัดการกับ activePositions
   useEffect(() => {
     // Log สถานะ activePositions ทุกครั้งที่มีการเปลี่ยนแปลง
     console.log("Court.jsx - activePositions updated:", activePositions);
-    
+    console.log("Court.jsx - forceUpdateCounter:", forceUpdateCounter);
+
     // สามารถเพิ่มการเก็บค่าลง localStorage เพื่อการดีบัก
     try {
       localStorage.setItem('debug_court_activePositions', JSON.stringify(activePositions));
     } catch (e) {
       // ไม่ต้องทำอะไรถ้าไม่สามารถบันทึกลง localStorage ได้
     }
+    
+    // บังคับให้ re-render เมื่อ activePositions มีการเปลี่ยนแปลง
+    const forceUpdateTimeout = setTimeout(() => {
+      // เพิ่ม counter เพื่อบังคับให้ component re-render
+      setForceUpdateCounter(prev => prev + 1);
+    }, 50);
+    
+    return () => {
+      clearTimeout(forceUpdateTimeout);
+    };
   }, [activePositions]);
 
   // เพิ่ม safety timeout สำหรับรีเซ็ตอนิเมชันที่ค้าง
@@ -273,24 +291,24 @@ const Court = forwardRef((props, ref) => {
           }
         }}
       >
-        {/* แสดงผู้เล่น */}
-        {players.filter(player => {
+        {/* แสดงผู้เล่น - เพิ่ม forceUpdateCounter เพื่อบังคับ re-render */}
+        {forceUpdateCounter !== undefined && players.filter(player => {
           // ตรวจสอบว่าผู้เล่นนี้อยู่ในตำแหน่งที่เปิดใช้งานหรือไม่
           const teamKey = player.team === 'A' ? 'red' : 'white';
-          
+
           // ตรวจสอบว่า activePositions มีค่าและมีค่าของทีมและตำแหน่งที่ต้องการ
           if (!activePositions || !activePositions[teamKey]) {
             console.warn(`Missing activePositions for team ${teamKey}`);
             return true; // ยังคงแสดงผู้เล่นถ้าไม่มีข้อมูล activePositions
           }
-          
+
           // ตรวจสอบว่าตำแหน่งนี้เปิดใช้งานอยู่หรือไม่
           const isPositionActive = !!activePositions[teamKey][player.position];
-          
+
           if (!isPositionActive) {
             console.log(`Filtering out player ${player.id} (${player.position}) - position disabled`);
           }
-          
+
           return isPositionActive;
         }).map(player => (
           <Player

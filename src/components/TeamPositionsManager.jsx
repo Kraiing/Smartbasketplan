@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Switch from './Switch';
 
 /**
@@ -23,15 +23,24 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
     C: true
   };
 
-  // ใช้ค่า default ถ้า activePositions ไม่มีค่าหรือเป็น null/undefined
-  const positionsState = activePositions ? { ...defaultPositions, ...activePositions } : defaultPositions;
-  
+  // เพิ่ม local state เพื่อให้ UI อัพเดททันทีแม้ props จะยังไม่เปลี่ยน
+  const [localPositions, setLocalPositions] = useState(
+    activePositions ? { ...defaultPositions, ...activePositions } : defaultPositions
+  );
+
+  // อัพเดท local state เมื่อ prop เปลี่ยน
+  useEffect(() => {
+    const newPositions = activePositions ? { ...defaultPositions, ...activePositions } : defaultPositions;
+    setLocalPositions(newPositions);
+    console.log(`TeamPositionsManager updated local state for ${team}:`, newPositions);
+  }, [activePositions, team]);
+
   // Debug เพื่อตรวจสอบค่า activePositions ที่ได้รับ
   console.log(`TeamPositionsManager for ${team} - activePositions:`, activePositions);
+  console.log(`TeamPositionsManager for ${team} - localPositions:`, localPositions);
 
   const handleToggle = (position) => {
     if (onTogglePosition && typeof onTogglePosition === 'function') {
-      // เพิ่มเอฟเฟคเสียงคลิก (ถ้ามีการรองรับ)
       try {
         if (window.navigator && window.navigator.vibrate) {
           window.navigator.vibrate(5); // สั่นเบาๆ 5ms
@@ -40,16 +49,19 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
         // ไม่ต้องทำอะไรถ้าไม่รองรับ
       }
 
-      // เรียกฟังก์ชัน toggle
-      console.log(`TeamPositionsManager - Toggling: ${team} - ${position}`);
+      // อัพเดท local state ทันทีเพื่อให้ UI ตอบสนอง
+      const newValue = !localPositions[position];
+      setLocalPositions(prev => ({
+        ...prev,
+        [position]: newValue
+      }));
+
+      console.log(`TeamPositionsManager - Toggling: ${team} - ${position} to ${newValue}`);
 
       // ลองใช้ try-catch เพื่อจับข้อผิดพลาดที่อาจเกิดขึ้น
       try {
-        // MenuBar จะส่งฟังก์ชันที่รับเฉพาะ position และจัดการเรื่อง team เอง
         onTogglePosition(position);
-        
-        // Log เพื่อดีบัก
-        console.log(`TeamPositionsManager - Toggle called for: ${team} ${position}, new state should be: ${!positionsState[position]}`);
+        console.log(`TeamPositionsManager - Toggle called for: ${team} ${position}, new state should be: ${newValue}`);
       } catch (error) {
         console.error("Error in onTogglePosition:", error);
       }
@@ -96,29 +108,25 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
                 alt={`${team} player`}
                 className="w-6 h-6 mr-2"
                 style={{
-                  opacity: positionsState[position] ? 1 : 0.4,
+                  opacity: localPositions[position] ? 1 : 0.4, // ใช้ localPositions แทน
                   transition: 'opacity 0.3s ease-in-out'
                 }}
               />
               <div>
-                <div className={`font-medium ${positionsState[position] ? '' : 'text-gray-400'}`}>{t.positions[position]}</div>
-                <div className={`text-xs ${positionsState[position] ? 'text-gray-500' : 'text-gray-300'}`}>{t.positionNames[position]}</div>
+                <div className={`font-medium ${localPositions[position] ? '' : 'text-gray-400'}`}>{t.positions[position]}</div>
+                <div className={`text-xs ${localPositions[position] ? 'text-gray-500' : 'text-gray-300'}`}>{t.positionNames[position]}</div>
               </div>
             </div>
             <div className="flex items-center">
-              <span className={`text-xs mr-2 ${positionsState[position] ? 'text-blue-500' : 'text-gray-400'}`}>
-                {positionsState[position] ? t.positionEnabled : ''}
+              <span className={`text-xs mr-2 ${localPositions[position] ? 'text-blue-500' : 'text-gray-400'}`}>
+                {localPositions[position] ? t.positionEnabled : ''}
               </span>
               <Switch
-                checked={!!positionsState[position]}
-                onChange={() => {
-                  console.log(`Switch onChange triggered for ${team} ${position} - current value: ${positionsState[position]}`);
-                  handleToggle(position);
-                  
-                  // เพิ่มการบังคับให้ re-render โดยใช้ setTimeout
-                  setTimeout(() => {
-                    console.log("Forcing UI update after switch toggle");
-                  }, 0);
+                checked={!!localPositions[position]} // ใช้ localPositions แทน
+                onChange={(e) => {
+                  console.log(`Switch onChange triggered for ${team} ${position} - current value: ${localPositions[position]}`);
+                  // เรียก handleToggle ผ่าน parent ที่มี onClick handler เดียวกัน
+                  // ไม่หยุด event propagation เพื่อให้ไปเรียก onClick ของ parent
                 }}
               />
             </div>
