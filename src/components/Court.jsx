@@ -32,7 +32,18 @@ const Court = forwardRef((props, ref) => {
   useImperativeHandle(ref, () => ({
     resetPositions: resetToInitialPositions,
     addPlayer,
-    removePlayer,
+    removePlayer: (team) => {
+      // หาผู้เล่นคนล่าสุดของทีมที่ระบุ
+      const teamPlayers = players.filter(p => 
+        (team === "red" && p.team === "A") || 
+        (team === "white" && p.team === "B")
+      );
+      if (teamPlayers.length > 0) {
+        // เรียกใช้ removePlayer ด้วย ID ของผู้เล่นคนสุดท้ายของทีม
+        const lastPlayer = teamPlayers[teamPlayers.length - 1];
+        removePlayer(lastPlayer.id);
+      }
+    },
     undo,
     redo,
     clearAllLines,
