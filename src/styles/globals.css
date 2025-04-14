@@ -43,11 +43,55 @@ body {
 
 /* อนิเมชันการเด้งสำหรับลูกบอล */
 @keyframes bounce {
-  0%, 100% {
+  0% {
     transform: translate(-50%, -50%) scale(1);
   }
+  30% {
+    transform: translate(-50%, -48%) scale(1.2);
+  }
+  60% {
+    transform: translate(-50%, -52%) scale(0.9);
+  }
+  80% {
+    transform: translate(-50%, -49%) scale(1.1);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* อนิเมชันการดังก์ลงห่วงบาส */
+@keyframes dunkBall {
+  0% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1.1) rotate(120deg);
+  }
+  60% {
+    transform: translate(-50%, -53%) scale(0.9) rotate(240deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1) rotate(360deg);
+  }
+}
+
+/* อนิเมชันการสั่นของตาข่ายห่วงบาส */
+@keyframes netShake {
+  0% {
+    transform: translateX(-50%) scaleY(1);
+  }
+  25% {
+    transform: translateX(-49%) scaleY(1.05);
+  }
   50% {
-    transform: translate(-50%, -50%) scale(1.1);
+    transform: translateX(-51%) scaleY(1.02);
+  }
+  75% {
+    transform: translateX(-50%) scaleY(1.03);
+  }
+  100% {
+    transform: translateX(-50%) scaleY(1);
   }
 }
 

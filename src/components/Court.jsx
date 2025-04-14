@@ -1,7 +1,9 @@
 import React, { useEffect, useImperativeHandle, forwardRef, useRef, useState } from 'react';
 import Player from './Player.jsx';
 import Ball from './Ball.jsx';
+import BasketballHoop from './BasketballHoop.jsx';
 import { usePlayLogic } from '../hooks/usePlayLogic.js';
+import { useHoopLogic } from '../hooks/useHoopLogic.js';
 
 const Court = forwardRef((props, ref) => {
   const {
@@ -27,7 +29,7 @@ const Court = forwardRef((props, ref) => {
     activePositions,
     togglePosition
   } = usePlayLogic();
-  
+
   // เพิ่ม forceUpdate state เพื่อบังคับให้ component re-render
   const [forceUpdateCounter, setForceUpdateCounter] = useState(0);
 
@@ -108,13 +110,13 @@ const Court = forwardRef((props, ref) => {
     } catch (e) {
       // ไม่ต้องทำอะไรถ้าไม่สามารถบันทึกลง localStorage ได้
     }
-    
+
     // บังคับให้ re-render เมื่อ activePositions มีการเปลี่ยนแปลง
     const forceUpdateTimeout = setTimeout(() => {
       // เพิ่ม counter เพื่อบังคับให้ component re-render
       setForceUpdateCounter(prev => prev + 1);
     }, 50);
-    
+
     return () => {
       clearTimeout(forceUpdateTimeout);
     };
@@ -146,6 +148,13 @@ const Court = forwardRef((props, ref) => {
 
   // ระบบการจัดการกับ double tap ของเส้น
   const lastTapRef = useRef({ time: 0, lineId: null });
+  
+  // ใช้ hook สำหรับจัดการแป้นบาส
+  const { hoopPositions, handleDunk } = useHoopLogic(ball);
+  
+  // Refs สำหรับเข้าถึง hoops โดยตรง
+  const leftHoopRef = useRef(null);
+  const rightHoopRef = useRef(null);
 
   // ฟังก์ชันที่ใช้จัดการกับการแตะที่เส้น
   const handleLineTap = (e, lineId) => {
@@ -317,6 +326,18 @@ const Court = forwardRef((props, ref) => {
             onPointerDown={(e) => handlePointerDown(e, player.id)}
           />
         ))}
+
+        {/* แป้นบาสเกตบอลทั้งสองข้าง */}
+        <BasketballHoop
+          ref={leftHoopRef}
+          position={hoopPositions.left}
+          onDunk={() => handleDunk('left')}
+        />
+        <BasketballHoop
+          ref={rightHoopRef}
+          position={hoopPositions.right}
+          onDunk={() => handleDunk('right')}
+        />
 
         {/* ลูกบอลวางไว้ตรงนี้เพื่อให้อยู่ด้านหน้าของผู้เล่น */}
         <Ball ball={ball} onPointerDown={handlePointerDown} />
