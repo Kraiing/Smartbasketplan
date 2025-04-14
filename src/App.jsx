@@ -1,10 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Court from './components/Court';
 import MenuBar from './components/MenuBar';
+import useMenuVisibility from './hooks/useMenuVisibility';
 import './styles/globals.css';
 
 function App() {
   const courtRef = useRef(null);
+  const { isVisible } = useMenuVisibility();
   
   // ตรวจสอบการหมุนจอและปรับขนาดหน้าจอ
   useEffect(() => {
@@ -14,11 +16,11 @@ function App() {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
       document.documentElement.style.setProperty('--screen-height', `${window.innerHeight}px`);
-      
-      // ปรับค่า --court-top-offset ตามโหมดแนวนอน/แนวตั้ง
+
+      // ปรับค่า --menu-height ตามโหมดแนวนอน/แนวตั้ง
       const isLandscape = window.innerWidth > window.innerHeight;
-      const courtTopOffset = isLandscape ? 40 : 50; // MenuBar สูง 40px ในแนวนอน, 50px ในแนวตั้ง
-      document.documentElement.style.setProperty('--court-top-offset', `${courtTopOffset}px`);
+      const menuHeight = isLandscape ? 40 : 50;  // MenuBar สูง 40px ในแนวนอน, 50px ในแนวตั้ง
+      document.documentElement.style.setProperty('--menu-height', `${menuHeight}px`);
     };
 
     // เรียกใช้ครั้งแรกและลงทะเบียนกับ event
@@ -34,34 +36,34 @@ function App() {
       window.removeEventListener('orientationchange', updateViewportHeight);
     };
   }, []);
-  
+
   // ตรวจสอบและแก้ไขปัญหา iOS Safari
   useEffect(() => {
     // ตรวจสอบว่าเป็น iOS หรือไม่
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    
+
     if (isIOS) {
       // ป้องกันการ scroll และการ bounce บน iOS Safari
       document.body.style.position = 'fixed';
       document.body.style.width = '100%';
       document.body.style.height = '100%';
       document.body.style.overflow = 'hidden';
-      
+
       // ป้องกันการซูม
       document.addEventListener('gesturestart', (e) => e.preventDefault());
       document.addEventListener('gesturechange', (e) => e.preventDefault());
       document.addEventListener('gestureend', (e) => e.preventDefault());
-      
+
       // ป้องกันการดับเบิลแตะเพื่อซูม
       const preventZoom = (e) => {
         if (e.touches && e.touches.length > 1) {
           e.preventDefault();
         }
       };
-      
+
       document.addEventListener('touchstart', preventZoom, { passive: false });
-      
+
       return () => {
         document.removeEventListener('gesturestart', (e) => e.preventDefault());
         document.removeEventListener('gesturechange', (e) => e.preventDefault());
@@ -76,37 +78,37 @@ function App() {
       courtRef.current.addPlayer(team);
     }
   };
-  
+
   const handleRemovePlayer = (team) => {
     if (courtRef.current) {
       courtRef.current.removePlayer(team);
     }
   };
-  
+
   const handleResetPositions = () => {
     if (courtRef.current) {
       courtRef.current.resetPositions();
     }
   };
-  
+
   const handleUndo = () => {
     if (courtRef.current) {
       courtRef.current.undo();
     }
   };
-  
+
   const handleRedo = () => {
     if (courtRef.current) {
       courtRef.current.redo();
     }
   };
-  
+
   const handleClearAllLines = () => {
     if (courtRef.current) {
       courtRef.current.clearAllLines();
     }
   };
-  
+
   const handleResetBallPassState = () => {
     if (courtRef.current) {
       courtRef.current.resetBallPassState();
@@ -133,7 +135,7 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">
-      <MenuBar 
+      <MenuBar
         onAddPlayer={handleAddPlayer}
         onRemovePlayer={handleRemovePlayer}
         onResetPositions={handleResetPositions}
@@ -147,7 +149,7 @@ function App() {
           if (courtRef.current && courtRef.current.togglePosition) {
             // เรียก togglePosition พร้อมกับบังคับอัพเดท UI เสมอ
             courtRef.current.togglePosition(team, position);
-            
+
             // เพิ่ม timeout เพื่อบังคับให้ re-render อีกครั้ง (สำคัญมากสำหรับการแก้ปัญหา)
             setTimeout(() => {
               // อัพเดท defaultActivePositions ด้วย เพื่อให้แน่ใจว่า UI จะอัพเดท

@@ -88,7 +88,8 @@ body {
 :root {
   --vh: 1vh;
   --screen-height: 100vh;
-  --court-top-offset: 50px;
+  --menu-height: 50px;
+  --menu-transition-duration: 300ms;
 }
 
 /* แก้ไขปัญหา viewport บน iOS Safari */
@@ -101,7 +102,7 @@ body {
     position: fixed;
     overflow: hidden;
   }
-  
+
   #root {
     height: 100vh; /* Fallback */
     height: calc(var(--vh, 1vh) * 100);
@@ -115,13 +116,13 @@ body {
     /* รองรับ iOS safe areas */
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
-  
+
   /* ปรับขนาดสนามให้พอดีกับพื้นที่แสดงผล */
   #basketball-court {
     width: 100% !important;
-    height: calc(100% - var(--court-top-offset)) !important;
+    height: 100% !important;
     position: absolute;
-    top: var(--court-top-offset);
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
@@ -130,6 +131,7 @@ body {
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     will-change: transform;
+    z-index: 1; /* ทำให้สนามอยู่ชั้นล่าง */
   }
   
   /* ปรับแต่งสำหรับสนามมีภาพพื้นหลัง */
@@ -137,7 +139,7 @@ body {
     background-size: 100% 100% !important;
     background-position: center center !important;
   }
-  
+
   /* ลดขนาดของ animation และเอฟเฟคต์บน iOS เพื่อเพิ่มประสิทธิภาพ */
   @media (max-width: 768px) {
     .ball-in-motion {
@@ -149,7 +151,7 @@ body {
       will-change: transform, top, left;
       -webkit-backface-visibility: hidden;
     }
-    
+
     /* ปรับขนาดเงาให้เล็กลงเพื่อประสิทธิภาพ */
     @keyframes pulseShadow {
       0%, 100% {
@@ -159,7 +161,7 @@ body {
         filter: drop-shadow(0 0 5px rgba(255,140,0,0.7));
       }
     }
-    
+
     /* ทำให้การหมุนช้าลงเพื่อลดการใช้ CPU */
     @keyframes spin {
       from {
@@ -169,14 +171,14 @@ body {
         transform: translate(-50%, -50%) rotate(360deg);
       }
     }
-    
+
     /* ปรับปรุงประสิทธิภาพของผู้เล่น */
     .player-img {
       will-change: transform, top, left;
       -webkit-backface-visibility: hidden;
     }
   }
-  
+
   /* ปรับแต่ง MenuBar บน iOS */
   @media (max-width: 768px) {
     /* ทำให้ MenuBar มีขนาดพอดีกับหน้าจอและมี padding สำหรับ notch */
@@ -195,7 +197,7 @@ body {
       -webkit-transform: translateZ(0);
       will-change: transform;
     }
-    
+
     /* ปรับขนาดปุ่มให้ใหญ่ขึ้นเพื่อให้ง่ายต่อการกดบนอุปกรณ์สัมผัส */
     button {
       min-height: 36px;
@@ -203,13 +205,13 @@ body {
       padding: 8px 12px;
       margin: 2px;
     }
-    
+
     /* ทำให้ emoji ในปุ่มใหญ่ขึ้น */
     button span[role="img"] {
       font-size: 1.2em;
     }
   }
-  
+
   /* ป้องกันการซูมด้วยการดับเบิลแทป (double-tap) */
   * {
     touch-action: manipulation;
@@ -225,6 +227,25 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* อนิเมชันสำหรับเมนูที่ซ่อนได้ */
+@keyframes slideIn {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100%);
   }
 }
 
@@ -250,9 +271,9 @@ body {
 /* ปรับแต่งการแสดงผลเมื่อหมุนจอในแนวนอน (landscape) */
 @media (max-width: 896px) and (orientation: landscape) {
   :root {
-    --court-top-offset: 40px;
+    --menu-height: 40px;
   }
-  
+
   @supports (-webkit-touch-callout: none) {
     /* ปรับลดขนาด MenuBar ในโหมดแนวนอน */
     .menu-bar {
@@ -260,17 +281,7 @@ body {
       padding-top: max(env(safe-area-inset-top), 2px);
       padding-bottom: 2px;
     }
-    
-    /* ปรับตำแหน่งสนามให้พอดีกับพื้นที่แสดงผลในโหมดแนวนอน */
-    #basketball-court {
-      top: var(--court-top-offset);
-      height: calc(100% - var(--court-top-offset)) !important;
-      /* ปรับแต่งการแสดงผลในแนวนอน */
-      background-size: contain !important;
-      background-repeat: no-repeat !important;
-      background-position: center center !important;
-    }
-    
+
     /* ปรับขนาดปุ่มให้เล็กลงในโหมดแนวนอน */
     button {
       min-height: 30px;
@@ -279,10 +290,42 @@ body {
       margin: 1px;
       font-size: 0.85rem;
     }
-    
+
     /* ลดขนาด emoji */
     button span[role="img"] {
       font-size: 1em;
     }
   }
+}
+
+/* เมนูพิเศษสำหรับแสดง/ซ่อน */
+.menu-bar {
+  transition: transform var(--menu-transition-duration) ease-in-out;
+}
+
+/* ไฮไลต์ขอบบนของเมนูที่ซ่อนอยู่เพื่อให้รู้ว่ามีเมนูอยู่ */
+.menu-bar.-translate-y-full::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* จัดการกล่องแสดงข้อมูลให้อยู่ตรงกลางเสมอ */
+.fixed.inset-0.flex.items-center.justify-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fixed.inset-0.flex.items-center.justify-center > div {
+  margin: auto;
+  max-height: 80vh;
+  position: relative;
+  top: 0;
+  transform: translateY(0);
 }
