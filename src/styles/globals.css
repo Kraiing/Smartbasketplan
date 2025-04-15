@@ -79,19 +79,19 @@ body {
 /* อนิเมชันการสั่นของตาข่ายห่วงบาส */
 @keyframes netShake {
   0% {
-    transform: translateX(-50%) scaleY(1);
+    transform: translateY(0) scaleY(1);
   }
-  25% {
-    transform: translateX(-49%) scaleY(1.05);
+  30% {
+    transform: translateY(2px) scaleY(1.05);
   }
   50% {
-    transform: translateX(-51%) scaleY(1.02);
+    transform: translateY(1px) scaleY(1.02);
   }
-  75% {
-    transform: translateX(-50%) scaleY(1.03);
+  70% {
+    transform: translateY(3px) scaleY(1.03);
   }
   100% {
-    transform: translateX(-50%) scaleY(1);
+    transform: translateY(0) scaleY(1);
   }
 }
 
