@@ -27,7 +27,9 @@ const Court = forwardRef((props, ref) => {
     currentAction,
     isAnimating,
     activePositions,
-    togglePosition
+    togglePosition,
+    setPlayers,
+    ballLogic
   } = usePlayLogic();
 
   // เพิ่ม forceUpdate state เพื่อบังคับให้ component re-render
@@ -150,7 +152,7 @@ const Court = forwardRef((props, ref) => {
   const lastTapRef = useRef({ time: 0, lineId: null });
   
   // ใช้ hook สำหรับจัดการแป้นบาส
-  const { hoopPositions, handleDunk } = useHoopLogic(ball);
+  const { hoopPositions, handleDunk } = useHoopLogic(ball, players, ballLogic.setBall, setPlayers);
   
   // Refs สำหรับเข้าถึง hoops โดยตรง
   const leftHoopRef = useRef(null);
