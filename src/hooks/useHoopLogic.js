@@ -111,6 +111,7 @@ export const useHoopLogic = (ball, players, setBall, setPlayers) => {
       // ชนกับแป้นด้านขวา
       handleDunk('right');
     }
+
   }, [ball, checkForDunk, handleDunk, hoopPositions]);
 
   // ล้าง timeout เมื่อ component unmount
