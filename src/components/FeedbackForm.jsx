@@ -108,7 +108,42 @@ const FeedbackForm = ({ language = 'th' }) => { // รับค่าภาษ�
           </select>
         </div>
 
-        {/* ส่วนอื่นๆ ของฟอร์ม */}
+        <div className="form-group">
+          <label htmlFor="rating" className="block text-gray-700 font-medium mb-2">{t.ratingLabel || 'คะแนนความพึงพอใจ'}:</label>
+          <div className="rating-input flex justify-between items-center bg-white p-3 rounded-lg border border-gray-300 shadow-sm">
+            {[1, 2, 3, 4, 5].map((value) => (
+              <label key={value} className="rating-label cursor-pointer flex flex-col items-center hover:transform hover:scale-110 transition-transform">
+                <input
+                  type="radio"
+                  name="rating"
+                  value={value}
+                  checked={rating === value}
+                  onChange={() => setRating(value)}
+                  disabled={submitting}
+                  className="hidden"
+                />
+                <span className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg
+                  ${rating === value ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-orange-200'}`}>
+                  {value}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="feedback" className="block text-gray-700 font-medium mb-2">{t.feedbackLabel || 'ข้อเสนอแนะ'}:</label>
+          <textarea
+            id="feedback"
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            rows={5}
+            placeholder={t.feedbackPlaceholder || "กรุณาแสดงความคิดเห็นหรือข้อเสนอแนะของคุณ..."}
+            required
+            disabled={submitting}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none bg-white"
+          />
+        </div>
 
         <div className="flex space-x-3">
           <button

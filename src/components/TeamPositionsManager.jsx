@@ -48,20 +48,30 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
       } catch (e) {
         // ไม่ต้องทำอะไรถ้าไม่รองรับ
       }
-
+  
       // อัพเดท local state ทันทีเพื่อให้ UI ตอบสนอง
       const newValue = !localPositions[position];
       setLocalPositions(prev => ({
         ...prev,
         [position]: newValue
       }));
-
+  
       console.log(`TeamPositionsManager - Toggling: ${team} - ${position} to ${newValue}`);
-
+  
       // ลองใช้ try-catch เพื่อจับข้อผิดพลาดที่อาจเกิดขึ้น
       try {
         onTogglePosition(position);
         console.log(`TeamPositionsManager - Toggle called for: ${team} ${position}, new state should be: ${newValue}`);
+        
+        // บอก parent component ให้บังคับ re-render
+        setTimeout(() => {
+          if (window.dispatchEvent) {
+            // ส่ง custom event เพื่อบอกให้ parent component re-render
+            window.dispatchEvent(new CustomEvent('position-toggled', { 
+              detail: { team, position, value: newValue }
+            }));
+          }
+        }, 50);
       } catch (error) {
         console.error("Error in onTogglePosition:", error);
       }
