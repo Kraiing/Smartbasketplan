@@ -177,7 +177,26 @@ body {
     will-change: transform;
     z-index: 1; /* ทำให้สนามอยู่ชั้นล่าง */
   }
-  
+
+  /* Fix menu display issues */
+  .player-menu-container, .red-team-menu-container, .white-team-menu-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .player-menu-container > div, .red-team-menu-container > div, .white-team-menu-container > div {
+    position: absolute !important;
+    z-index: 1000 !important;
+  }
+
+  /* Prevent menu from displaying incorrectly on court */
+  .absolute.bg-white.bg-opacity-90 {
+    position: fixed !important;
+    min-width: 200px;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
   /* ปรับแต่งสำหรับสนามมีภาพพื้นหลัง */
   #basketball-court {
     background-size: 100% 100% !important;
@@ -240,6 +259,23 @@ body {
       transform: translateZ(0);
       -webkit-transform: translateZ(0);
       will-change: transform;
+    }
+
+    /* Fix dropdown menu position */
+    .relative.player-menu-container > div[class*="absolute"] {
+      position: fixed !important;
+      transform: translateX(-50%) !important;
+      left: 50% !important;
+      right: auto !important;
+      top: 60px !important;
+      z-index: 1100 !important;
+    }
+
+    .relative.red-team-menu-container > div[class*="absolute"],
+    .relative.white-team-menu-container > div[class*="absolute"] {
+      position: fixed !important;
+      transform: translateX(-100%) !important;
+      z-index: 1100 !important;
     }
 
     /* ปรับขนาดปุ่มให้ใหญ่ขึ้นเพื่อให้ง่ายต่อการกดบนอุปกรณ์สัมผัส */
@@ -523,14 +559,14 @@ body {
   pointer-events: none;
 }
 
-.feedback-form input, 
-.feedback-form select, 
+.feedback-form input,
+.feedback-form select,
 .feedback-form textarea {
   transition: all 0.3s ease;
 }
 
-.feedback-form input:focus, 
-.feedback-form select:focus, 
+.feedback-form input:focus,
+.feedback-form select:focus,
 .feedback-form textarea:focus {
   transform: scale(1.01);
   box-shadow: 0 4px 12px rgba(252, 165, 76, 0.15);
@@ -621,3 +657,117 @@ body {
 .btn-back span, .btn-logout span {
   margin-right: 0.5rem;
 }
+
+/* =================== Menu positioning system ==================== */
+
+/* Reset any stray elements on court */
+body > div:not([id="root"]) {
+  display: none !important;
+}
+
+/* Target TeamPositionsManager components that are not within menus */
+.TeamPositionsManager:not(.menu-bar .TeamPositionsManager) {
+  display: none !important;
+}
+
+/* Style for menu bar dropdowns */
+.menu-bar .player-dropdown,
+.menu-bar .red-team-dropdown,
+.menu-bar .white-team-dropdown {
+  position: fixed !important;
+  background: white !important;
+  z-index: 1200 !important;
+}
+
+/* Player dropdown positioning */
+.menu-bar .player-dropdown {
+  right: auto !important;
+  top: 60px !important;
+}
+
+/* Properly position red and white team menus */
+.menu-bar .red-team-dropdown,
+.menu-bar .white-team-dropdown {
+  position: absolute !important;
+  left: 100% !important;
+  top: 0 !important;
+  margin-left: 10px !important;
+}
+
+/* Force display of intended TeamPositionsManager components */
+.menu-bar .red-team-dropdown .TeamPositionsManager,
+.menu-bar .white-team-dropdown .TeamPositionsManager,
+.menu-bar .player-dropdown .TeamPositionsManager {
+  display: block !important;
+  position: relative !important;
+  background: transparent !important;
+}
+
+/* Hide anything that's not supposed to be shown */
+body > .px-3.py-2:not(.menu-bar *) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Basketball court should remain at the bottom layer */
+#basketball-court {
+  width: 100vw !important;
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 1 !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+#basketball-court-container {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 0 !important;
+}
+
+/* Hide any stray team position managers specifically */
+body .TeamPositionsManager:not(.menu-bar .red-team-dropdown .TeamPositionsManager):not(.menu-bar .white-team-dropdown .TeamPositionsManager):not(.menu-bar .player-dropdown .TeamPositionsManager) {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Debug - Force hide TeamPositionsManager outside of menu structure */
+#basketball-court-container .TeamPositionsManager,
+#basketball-court .TeamPositionsManager {
+  display: none !important;
+}
+
+/* Ensure menu is above basketball court */
+.menu-bar {
+  z-index: 1000 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  transform-origin: top;
+}
+
+/* Fix for stray elements on court */
+#basketball-court-container > *:not(#basketball-court) {
+  display: none !important;
+}
+
+/* Force hide inline style overrides */
+[style*="display: block"]:not(.menu-bar *) {
+  display: none !important;
+}
+
+/* Target TeamPositionsManager by content */
+div:has(>.text-center.font-bold.py-1.border-b.border-gray-200.mb-2):not(.menu-bar *) {
+  display: none !important;
+}
+
+/* =================== End of menu positioning system ==================== */

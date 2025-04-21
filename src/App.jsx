@@ -1,49 +1,89 @@
 // ในไฟล์ App.jsx
-import React, { useRef, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import React, { useRef, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // นำเข้า components
 import Court from './components/Court';
 import MenuBar from './components/MenuBar';
-import useMenuVisibility from './hooks/useMenuVisibility';
 import Login from './components/Login';
 import UserProfile from './components/UserProfile';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import FeedbackForm from './components/FeedbackForm';
 import FeedbackDashboard from './components/FeedbackDashboard';
 
+// PrivateRoute component
+function PrivateRoute({ children }) {
+  const { currentUser } = useAuth();
+
+  if (!currentUser) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+}
+
 function MainApp() {
   const courtRef = useRef(null);
-  const { isVisible } = useMenuVisibility();
-  const { currentUser } = useAuth();
-  
+
   // เพิ่มสถานะภาษาใน App.jsx
   const [language, setLanguage] = useState('th');
-  
-  // ...โค้ดอื่นๆ
-  
+
+  // ตำแหน่งของผู้เล่นเริ่มต้น
+  const [activePositions, setActivePositions] = useState({
+    red: { PG: true, SG: true, SF: true, PF: true, C: true },
+    white: { PG: true, SG: true, SF: true, PF: true, C: true }
+  });
+
+  // ฟังก์ชันจัดการผู้เล่น
+  const handleResetPositions = () => {
+    courtRef.current?.resetInitialPositions();
+  };
+
+  const handleUndo = () => {
+    courtRef.current?.undo();
+  };
+
+  const handleRedo = () => {
+    courtRef.current?.redo();
+  };
+
+  const handleClearAllLines = () => {
+    courtRef.current?.clearAllLines();
+  };
+
+  const handleResetBallPassState = () => {
+    courtRef.current?.resetBallPassState();
+  };
+
+  // ฟังก์ชันจัดการการเปิด/ปิดตำแหน่งผู้เล่น
+  const handleTogglePosition = (team, position) => {
+    const newActivePositions = {
+      ...activePositions,
+      [team]: {
+        ...activePositions[team],
+        [position]: !activePositions[team][position]
+      }
+    };
+    setActivePositions(newActivePositions);
+    // ไม่ต้องเรียกใช้ updateActivePositions เพราะใช้ props การอัพเดตจะเกิดขึ้นอัตโนมัติ
+  };
+
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden">
+    <div className="app h-screen w-screen overflow-hidden">
       <MenuBar
-        // ส่งค่าภาษาและฟังก์ชันเปลี่ยนภาษาไปยัง MenuBar
         language={language}
         setLanguage={setLanguage}
-        // props อื่นๆ ยังคงเหมือนเดิม
-        onAddPlayer={handleAddPlayer}
-        onRemovePlayer={handleRemovePlayer}
         onResetPositions={handleResetPositions}
         onUndo={handleUndo}
         onRedo={handleRedo}
         onClearAllLines={handleClearAllLines}
         onResetBallPassState={handleResetBallPassState}
-        activePositions={courtRef.current?.activePositions || defaultActivePositions}
-        onTogglePosition={(team, position) => {
-          // โค้ดเดิม
-        }}
+        activePositions={activePositions}
+        onTogglePosition={handleTogglePosition}
       />
-      <div className="flex-grow overflow-hidden">
-        <Court ref={courtRef} />
+      <div className="h-screen w-screen absolute top-0 left-0">
+        <Court ref={courtRef} activePositions={activePositions} />
       </div>
     </div>
   );
@@ -52,7 +92,7 @@ function MainApp() {
 function App() {
   // เพิ่มสถานะภาษาในระดับ App
   const [language, setLanguage] = useState('th');
-  
+
   return (
     <AuthProvider>
       <Router>

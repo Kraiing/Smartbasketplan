@@ -1,23 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 
-export const usePositionManager = (initialPositions, players, setPlayers, ballLogic, positionToPlayerId) => {
-  const [activePositions, setActivePositions] = useState(initialPositions || {
-    red: {
-      PG: true, SG: true, SF: true, PF: true, C: true
-    },
-    white: {
-      PG: true, SG: true, SF: true, PF: true, C: true
-    }
-  });
-
-  // บันทึกสถานะไปยัง localStorage เพื่อช่วยในการดีบัก
-  useEffect(() => {
-    try {
-      localStorage.setItem('debug_position_manager', JSON.stringify(activePositions));
-    } catch (e) {
-      // ไม่ต้องทำอะไรถ้าไม่สามารถบันทึกได้
-    }
-  }, [activePositions]);
+export const usePositionManager = (activePositions, players, setPlayers, ballLogic, positionToPlayerId) => {
+  // ใช้ activePositions จาก props โดยตรง
 
   const togglePosition = useCallback((team, position) => {
     console.log(`togglePosition called with team: ${team}, position: ${position}`);
@@ -35,17 +19,13 @@ export const usePositionManager = (initialPositions, players, setPlayers, ballLo
     // ตรวจสอบว่า team มีอยู่ใน activePositions
     const teamKey = team === "red" || team === "white" ? team : (team === "A" ? "red" : "white");
 
-    // ถ้าไม่มี key สำหรับทีมนี้ สร้างใหม่
-    if (!activePositions[teamKey] || typeof activePositions[teamKey] !== 'object') {
-      console.log(`Creating new activePositions entry for team: ${teamKey}`);
-      setActivePositions(prev => ({
-        ...prev,
-        [teamKey]: {
-          PG: true, SG: true, SF: true, PF: true, C: true
-        }
-      }));
-      return; // ออกจากฟังก์ชันเพื่อให้ state update ก่อน
-    }
+    console.log(`Processing toggle: Team: ${teamKey}, Position: ${position}`);
+
+    // เรียกใช้งาน onTogglePosition callback สำหรับการอัพเดต activePositions ใน parent component
+
+    try {
+      // ส่ง playerID ที่เกี่ยวข้องกับตำแหน่งที่ถูกสลับ
+      const playerId = positionToPlayerId[internalTeam]?.[position];
 
     // ตรวจสอบว่าตำแหน่งที่ระบุมีอยู่หรือไม่
     if (activePositions[teamKey][position] === undefined) {
@@ -102,7 +82,7 @@ export const usePositionManager = (initialPositions, players, setPlayers, ballLo
 
     // ตรวจสอบว่าเราจะปิดตำแหน่งหรือเปิดตำแหน่ง
     const willTurnOff = activePositions[teamKey][position];
-    
+
     // กรณีผู้เล่นมีลูกบอลและกำลังจะปิดตำแหน่ง
     if (willTurnOff && player && player.hasBall) {
       // ต้องหาผู้เล่นคนอื่นในทีมเดียวกันที่ยังเปิดอยู่
@@ -182,7 +162,7 @@ export const usePositionManager = (initialPositions, players, setPlayers, ballLo
       };
 
       console.log("New activePositions state:", JSON.stringify(newState));
-      
+
       // บันทึกการเปลี่ยนแปลงทันทีลงใน localStorage เพื่อให้สามารถดีบักได้
       try {
         localStorage.setItem('debug_activePositions', JSON.stringify(newState));
@@ -196,7 +176,7 @@ export const usePositionManager = (initialPositions, players, setPlayers, ballLo
     // เพิ่ม setTimeout เพื่อบังคับให้ UI อัพเดทในกรณีที่มีปัญหากับ render cycle
     setTimeout(() => {
       console.log("Forcing UI update after position toggle");
-      
+
       // เพิ่มการแจ้งเตือนการอัพเดทใหม่อีกครั้ง
       setActivePositions(prev => ({...prev}));
     }, 50);

@@ -83,9 +83,13 @@ const MenuBar = ({
       }
     };
 
-    document.addEventListener('pointerdown', handleClickOutside);
+    // ใช้ timeout เพื่อหลีกเลี่ยงการปิดทันทีเมื่อเปิด
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('pointerdown', handleClickOutside);
+    }, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       document.removeEventListener('pointerdown', handleClickOutside);
     };
   }, [showPlayerMenu, showRedTeamMenu, showWhiteTeamMenu, showUserMenu]);
@@ -179,7 +183,7 @@ const MenuBar = ({
       )}
 
       <div
-        className={`w-full bg-orange-400 text-white px-4 py-2 shadow-md fixed top-0 left-0 right-0 z-50 menu-bar ${isIOS ? 'ios-menu' : ''} ${isLandscape ? 'landscape' : 'portrait'} transition-transform duration-300 ease-in-out ${isVisible || showAboutModal ? 'translate-y-0' : '-translate-y-full'}`}
+        className={`w-full bg-orange-400 text-white px-4 py-2 shadow-md fixed top-0 left-0 right-0 z-[500] menu-bar ${isIOS ? 'ios-menu' : ''} ${isLandscape ? 'landscape' : 'portrait'} transition-transform duration-300 ease-in-out ${isVisible || showAboutModal ? 'translate-y-0' : '-translate-y-full'}`}
         onMouseEnter={handleMenuEnter}
         onMouseLeave={handleMenuLeave}
       >
@@ -212,13 +216,13 @@ const MenuBar = ({
               </button>
 
               {showPlayerMenu && (
-                <div className={`absolute right-0 mt-1 bg-white bg-opacity-70 backdrop-blur-sm shadow-lg rounded py-1 z-50 ${isIOS ? 'w-48' : 'w-44'}`}>
+                <div className={`absolute right-0 mt-1 bg-white bg-opacity-90 backdrop-blur-sm shadow-lg rounded py-1 z-[100] player-dropdown ${isIOS ? 'w-48' : 'w-44'}`}>
                   <div className="text-center font-bold text-gray-700 py-1 border-b border-gray-200">
                     {t.positionsManagement}
                   </div>
 
                   {/* ปุ่มจัดการตำแหน่งทีมแดง */}
-                  <div className="relative red-team-menu-container">
+                  <div className="relative red-team-menu-container" id="red-team-menu">
                     <button
                       className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 flex items-center justify-between"
                       onClick={handleToggleRedTeamMenu}
@@ -237,7 +241,7 @@ const MenuBar = ({
                     </button>
 
                     {showRedTeamMenu && (
-                      <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-70 backdrop-blur-sm shadow-lg rounded-lg py-2 z-50 w-64 border border-red-100 animate-fade-in">
+                      <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-90 backdrop-blur-sm shadow-lg rounded-lg py-2 z-[60] w-64 border border-red-100 animate-fade-in red-team-dropdown">
                         <TeamPositionsManager
                           team="red"
                           activePositions={activePositions && activePositions.red ? activePositions.red : {
@@ -256,7 +260,7 @@ const MenuBar = ({
                   </div>
 
                   {/* ปุ่มจัดการตำแหน่งทีมขาว */}
-                  <div className="relative white-team-menu-container">
+                  <div className="relative white-team-menu-container" id="white-team-menu">
                     <button
                       className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center justify-between"
                       onClick={handleToggleWhiteTeamMenu}
@@ -275,7 +279,7 @@ const MenuBar = ({
                     </button>
 
                     {showWhiteTeamMenu && (
-                      <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-70 backdrop-blur-sm shadow-lg rounded-lg py-2 z-50 w-64 border border-blue-100 animate-fade-in">
+                      <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-90 backdrop-blur-sm shadow-lg rounded-lg py-2 z-[60] w-64 border border-blue-100 animate-fade-in white-team-dropdown">
                         <TeamPositionsManager
                           team="white"
                           activePositions={activePositions && activePositions.white ? activePositions.white : {

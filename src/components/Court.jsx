@@ -55,19 +55,7 @@ const Court = forwardRef((props, ref) => {
     redo,
     clearAllLines,
     resetBallPassState,
-    activePositions,
-    togglePosition: (team, position) => {
-      console.log(`Court.jsx - Calling togglePosition: ${team} - ${position}`);
-      try {
-        togglePosition(team, position);
-        // บังคับให้ component re-render ด้วยการเพิ่มค่า counter
-        setTimeout(() => {
-          setForceUpdateCounter(prev => prev + 1);
-        }, 10);
-      } catch (error) {
-        console.error("Court.jsx - Error in togglePosition:", error);
-      }
-    }
+    activePositions
   }));
 
   // ป้องกันการ scroll บนอุปกรณ์มือถือและเริ่มต้นการตั้งค่า touch events
@@ -150,10 +138,10 @@ const Court = forwardRef((props, ref) => {
 
   // ระบบการจัดการกับ double tap ของเส้น
   const lastTapRef = useRef({ time: 0, lineId: null });
-  
+
   // ใช้ hook สำหรับจัดการแป้นบาส
   const { hoopPositions, handleDunk } = useHoopLogic(ball, players, ballLogic.setBall, setPlayers);
-  
+
   // Refs สำหรับเข้าถึง hoops โดยตรง
   const leftHoopRef = useRef(null);
   const rightHoopRef = useRef(null);
@@ -268,13 +256,17 @@ const Court = forwardRef((props, ref) => {
   };
 
   return (
-    <div className="relative w-full h-full">
+    <div id="basketball-court-container" className="fixed top-0 left-0 w-screen h-screen">
       <div
         id="basketball-court"
-        className="relative w-full h-full bg-center bg-no-repeat bg-cover"
+        className="w-full h-full bg-center bg-no-repeat bg-cover"
         style={{
           backgroundImage: "url('/court-real.png')",
-          touchAction: "manipulation" // เพิ่ม touch-action เพื่อรองรับการแตะหลายนิ้ว
+          touchAction: "manipulation", // เพิ่ม touch-action เพื่อรองรับการแตะหลายนิ้ว
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          zIndex: 1
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -307,14 +299,14 @@ const Court = forwardRef((props, ref) => {
           // ตรวจสอบว่าผู้เล่นนี้อยู่ในตำแหน่งที่เปิดใช้งานหรือไม่
           const teamKey = player.team === 'A' ? 'red' : 'white';
 
-          // ตรวจสอบว่า activePositions มีค่าและมีค่าของทีมและตำแหน่งที่ต้องการ
-          if (!activePositions || !activePositions[teamKey]) {
+          // ตรวจสอบว่า propsActivePositions มีค่าและมีค่าของทีมและตำแหน่งที่ต้องการ
+          if (!propsActivePositions || !propsActivePositions[teamKey]) {
             console.warn(`Missing activePositions for team ${teamKey}`);
             return true; // ยังคงแสดงผู้เล่นถ้าไม่มีข้อมูล activePositions
           }
 
           // ตรวจสอบว่าตำแหน่งนี้เปิดใช้งานอยู่หรือไม่
-          const isPositionActive = !!activePositions[teamKey][player.position];
+          const isPositionActive = !!propsActivePositions[teamKey][player.position];
 
           if (!isPositionActive) {
             console.log(`Filtering out player ${player.id} (${player.position}) - position disabled`);

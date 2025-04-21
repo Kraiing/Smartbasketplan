@@ -12,24 +12,24 @@ const FeedbackForm = ({ language = 'th' }) => { // รับค่าภาษ�
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  
+
   // ใช้ translations ตามภาษาที่ได้รับ
   const t = translations[language] || translations.th;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!feedback.trim()) {
       setError('กรุณากรอกข้อเสนอแนะ');
       return;
     }
-    
+
     setSubmitting(true);
     setError(null);
-    
+
     try {
       const user = auth.currentUser;
-      
+
       await addDoc(collection(db, "feedback"), {
         userId: user ? user.uid : 'anonymous',
         userEmail: user ? user.email : 'ไม่ระบุ',
@@ -39,7 +39,7 @@ const FeedbackForm = ({ language = 'th' }) => { // รับค่าภาษ�
         timestamp: serverTimestamp(),
         status: 'new'
       });
-      
+
       setSubmitted(true);
       setFeedback('');
       setRating(5);
@@ -52,7 +52,10 @@ const FeedbackForm = ({ language = 'th' }) => { // รับค่าภาษ�
     }
   };
 
-  // โค้ดอื่นๆ...
+  const handleNewFeedback = () => {
+    setSubmitted(false);
+    setError(null);
+  };
 
   if (submitted) {
     return (
@@ -80,9 +83,14 @@ const FeedbackForm = ({ language = 'th' }) => { // รับค่าภาษ�
         <h2 className="text-2xl font-bold text-orange-600">{t.sendFeedback || 'ส่งข้อเสนอแนะ'}</h2>
         <div className="text-3xl">🏀</div>
       </div>
-      
-      {/* เนื้อหาอื่นๆ... */}
-      
+
+      {/* แสดงข้อความ error ถ้ามี */}
+      {error && (
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded">
+          <p>{error}</p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="feedback-form space-y-5">
         <div className="form-group">
           <label htmlFor="category" className="block text-gray-700 font-medium mb-2">{t.category || 'หมวดหมู่'}:</label>
@@ -99,21 +107,21 @@ const FeedbackForm = ({ language = 'th' }) => { // รับค่าภาษ�
             <option value="improvement">{t.categoryImprovement || 'ข้อเสนอแนะเพื่อปรับปรุง'}</option>
           </select>
         </div>
-        
+
         {/* ส่วนอื่นๆ ของฟอร์ม */}
-        
+
         <div className="flex space-x-3">
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => navigate('/')}
             className="w-1/3 py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-full focus:outline-none transition-all"
             disabled={submitting}
           >
             {t.back || 'กลับ'}
           </button>
-          
-          <button 
-            type="submit" 
+
+          <button
+            type="submit"
             className="w-2/3 py-2 px-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all"
             disabled={submitting}
           >

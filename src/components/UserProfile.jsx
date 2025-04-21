@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { updateProfile, updateEmail, updatePassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { translations } from '../i18n/translations';
 
-const UserProfile = ({ language = 'th' }) => {
+const UserProfile = () => {
   const { currentUser, logout } = useAuth();
   const [name, setName] = useState(currentUser?.displayName || '');
   const [email, setEmail] = useState(currentUser?.email || '');
@@ -14,9 +13,6 @@ const UserProfile = ({ language = 'th' }) => {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
   const navigate = useNavigate();
-
-  // ใช้ข้อความตามภาษาที่เลือก
-  const t = translations[language] || translations.th;
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();

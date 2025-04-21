@@ -6,7 +6,7 @@ import { usePlayerManager } from './usePlayerManager';
 import { useHistoryManager } from './useHistoryManager';
 import { useInteractionManager } from './useInteractionManager';
 
-export const usePlayLogic = () => {
+export const usePlayLogic = (propsActivePositions) => {
   // สถานะผู้เล่น
   const [players, setPlayers] = useState([
     // ทีม A (ฝั่งซ้าย/แดง)
@@ -24,16 +24,12 @@ export const usePlayLogic = () => {
     { id: 'b5', x: 75, y: 80, team: 'B', number: 5, position: 'C', hasBall: false }
   ]);
 
-  // ค่าเริ่มต้นของตำแหน่งที่ใช้งาน
-  const initialActivePositions = {
-    red: {
-      PG: true, SG: true, SF: true, PF: true, C: true
-    },
-    white: {
-      PG: true, SG: true, SF: true, PF: true, C: true
-    }
+  // ใช้ activePositions จาก props แทน
+  const activePositions = propsActivePositions || {
+    red: { PG: true, SG: true, SF: true, PF: true, C: true },
+    white: { PG: true, SG: true, SF: true, PF: true, C: true }
   };
-  
+
   // แก้ไขเพิ่มเติม: เชื่อมโยงตำแหน่งกับ ID ของผู้เล่น
   const positionToPlayerId = {
     'A': {
@@ -60,7 +56,7 @@ export const usePlayLogic = () => {
 
   // การจัดการตำแหน่งผู้เล่น
   const positionManager = usePositionManager(
-    initialActivePositions,
+    activePositions,
     players,
     setPlayers,
     ballLogic,

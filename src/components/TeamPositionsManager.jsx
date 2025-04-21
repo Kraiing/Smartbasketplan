@@ -88,7 +88,7 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
   };
 
   return (
-    <div className="px-3 py-2">
+    <div className="TeamPositionsManager px-3 py-2">
       <div className={`text-center font-bold py-1 border-b border-gray-200 mb-2 ${team === 'red' ? 'text-red-600' : 'text-blue-600'}`}>
         {team === 'red' ? t.teamRed : t.teamWhite}
       </div>
