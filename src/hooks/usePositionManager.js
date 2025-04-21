@@ -1,7 +1,15 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
-export const usePositionManager = (activePositions, players, setPlayers, ballLogic, positionToPlayerId) => {
-  // ใช้ activePositions จาก props โดยตรง
+export const usePositionManager = (initialPositions, players, setPlayers, ballLogic, positionToPlayerId) => {
+  // ใช้ initialPositions จาก props เป็นค่าเริ่มต้นแล้วจัดการ state ภายใน component
+  const [activePositions, setActivePositions] = useState(initialPositions || {
+    red: {
+      PG: true, SG: true, SF: true, PF: true, C: true
+    },
+    white: {
+      PG: true, SG: true, SF: true, PF: true, C: true
+    }
+  });
 
   const togglePosition = useCallback((team, position) => {
     console.log(`togglePosition called with team: ${team}, position: ${position}`);
@@ -20,12 +28,6 @@ export const usePositionManager = (activePositions, players, setPlayers, ballLog
     const teamKey = team === "red" || team === "white" ? team : (team === "A" ? "red" : "white");
 
     console.log(`Processing toggle: Team: ${teamKey}, Position: ${position}`);
-
-    // เรียกใช้งาน onTogglePosition callback สำหรับการอัพเดต activePositions ใน parent component
-
-    try {
-      // ส่ง playerID ที่เกี่ยวข้องกับตำแหน่งที่ถูกสลับ
-      const playerId = positionToPlayerId[internalTeam]?.[position];
 
     // ตรวจสอบว่าตำแหน่งที่ระบุมีอยู่หรือไม่
     if (activePositions[teamKey][position] === undefined) {
@@ -153,6 +155,22 @@ export const usePositionManager = (activePositions, players, setPlayers, ballLog
 
     // อัพเดทสถานะทันที เพื่อให้ UI แสดงผลได้อย่างรวดเร็ว
     setActivePositions(prev => {
+      // ตรวจสอบ null หรือ undefined หรือ teamKey ไม่มีใน prev
+      if (!prev || !prev[teamKey]) {
+        // สร้างค่าใหม่ถ้าไม่มีค่าเดิม
+        const newState = {
+          red: { PG: true, SG: true, SF: true, PF: true, C: true },
+          white: { PG: true, SG: true, SF: true, PF: true, C: true }
+        };
+
+        // สลับค่าตำแหน่งที่ต้องการ toggle
+        if (teamKey === 'red' || teamKey === 'white') {
+          newState[teamKey][position] = false; // สลับจาก true เป็น false
+        }
+
+        return newState;
+      }
+
       const newState = {
         ...prev,
         [teamKey]: {
@@ -179,6 +197,17 @@ export const usePositionManager = (activePositions, players, setPlayers, ballLog
 
       // เพิ่มการแจ้งเตือนการอัพเดทใหม่อีกครั้ง
       setActivePositions(prev => ({...prev}));
+
+      // ส่ง custom event เพื่อแจ้งให้ component อื่นรู้ว่ามีการเปลี่ยนแปลงตำแหน่ง
+      try {
+        const positionEvent = new CustomEvent('position-toggled', {
+          detail: { team: teamKey, position, value: !activePositions[teamKey][position] }
+        });
+        window.dispatchEvent(positionEvent);
+        console.log("Custom event 'position-toggled' dispatched");
+      } catch (e) {
+        console.error("Error dispatching position-toggled event:", e);
+      }
     }, 50);
 
   }, [activePositions, players, setPlayers, ballLogic, positionToPlayerId]);
@@ -189,3 +218,5 @@ export const usePositionManager = (activePositions, players, setPlayers, ballLog
     togglePosition
   };
 };
+
+export default usePositionManager;

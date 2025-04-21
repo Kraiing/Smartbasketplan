@@ -55,7 +55,27 @@ const Court = forwardRef((props, ref) => {
     redo,
     clearAllLines,
     resetBallPassState,
-    activePositions
+    activePositions,
+    togglePosition: (team, position) => {
+      console.log(`Court.jsx - Calling togglePosition: ${team} - ${position}`);
+      try {
+        // เรียกใช้ togglePosition จาก usePlayLogic โดยตรง
+        togglePosition(team, position);
+
+        // บังคับให้ component re-render ด้วยการเพิ่มค่า counter
+        setTimeout(() => {
+          setForceUpdateCounter(prev => prev + 1);
+        }, 10);
+
+        // ส่ง custom event เพื่อบังคับให้ UI ทั้งหมด re-render
+        const event = new CustomEvent('position-toggled', {
+          detail: { team, position }
+        });
+        window.dispatchEvent(event);
+      } catch (error) {
+        console.error("Court.jsx - Error in togglePosition:", error);
+      }
+    }
   }));
 
   // ป้องกันการ scroll บนอุปกรณ์มือถือและเริ่มต้นการตั้งค่า touch events
@@ -110,7 +130,7 @@ const Court = forwardRef((props, ref) => {
     return () => {
       clearTimeout(forceUpdateTimeout);
     };
-  }, [activePositions]);
+  }, [activePositions, forceUpdateCounter]); // เพิ่ม forceUpdateCounter เข้าไปใน dependency array
 
   // เพิ่ม safety timeout สำหรับรีเซ็ตอนิเมชันที่ค้าง
   useEffect(() => {
@@ -130,6 +150,21 @@ const Court = forwardRef((props, ref) => {
       }
     };
   }, [isAnimating, resetBallPassState]);
+
+  // เพิ่ม useEffect นี้หลังจาก useEffect อื่นๆ
+useEffect(() => {
+  const handlePositionToggled = (event) => {
+    console.log("Position toggled event received:", event.detail);
+    // บังคับให้ re-render
+    setForceUpdateCounter(prev => prev + 1);
+  };
+
+  window.addEventListener('position-toggled', handlePositionToggled);
+
+  return () => {
+    window.removeEventListener('position-toggled', handlePositionToggled);
+  };
+}, []);
 
   // ตรวจสอบอุปกรณ์ iOS และปรับแต่งการแสดงผล
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -296,30 +331,32 @@ const Court = forwardRef((props, ref) => {
       >
         {/* แสดงผู้เล่น - เพิ่ม forceUpdateCounter เพื่อบังคับ re-render */}
         {forceUpdateCounter !== undefined && players.filter(player => {
-          // ตรวจสอบว่าผู้เล่นนี้อยู่ในตำแหน่งที่เปิดใช้งานหรือไม่
-          const teamKey = player.team === 'A' ? 'red' : 'white';
+  // ตรวจสอบว่าผู้เล่นนี้อยู่ในตำแหน่งที่เปิดใช้งานหรือไม่
+  const teamKey = player.team === 'A' ? 'red' : 'white';
 
-          // ตรวจสอบว่า propsActivePositions มีค่าและมีค่าของทีมและตำแหน่งที่ต้องการ
-          if (!propsActivePositions || !propsActivePositions[teamKey]) {
-            console.warn(`Missing activePositions for team ${teamKey}`);
-            return true; // ยังคงแสดงผู้เล่นถ้าไม่มีข้อมูล activePositions
-          }
+  // ตรวจสอบว่า activePositions มีค่าและมีค่าของทีมและตำแหน่งที่ต้องการ
+  if (!activePositions || !activePositions[teamKey]) {
+    console.warn(`Missing activePositions for team ${teamKey}`);
+    return true; // ยังคงแสดงผู้เล่นถ้าไม่มีข้อมูล activePositions
+  }
 
-          // ตรวจสอบว่าตำแหน่งนี้เปิดใช้งานอยู่หรือไม่
-          const isPositionActive = !!propsActivePositions[teamKey][player.position];
+  // ตรวจสอบว่าตำแหน่งนี้เปิดใช้งานอยู่หรือไม่
+  const isPositionActive = activePositions &&
+                         activePositions[teamKey] &&
+                         activePositions[teamKey][player.position] === true;
 
-          if (!isPositionActive) {
-            console.log(`Filtering out player ${player.id} (${player.position}) - position disabled`);
-          }
+  if (!isPositionActive) {
+    console.log(`[DEBUG] Filtering out player ${player.id} (${player.position}) - position disabled - activePositions: ${JSON.stringify(activePositions?.[teamKey])}`);
+  }
 
-          return isPositionActive;
-        }).map(player => (
-          <Player
-            key={player.id}
-            player={player}
-            onPointerDown={(e) => handlePointerDown(e, player.id)}
-          />
-        ))}
+  return isPositionActive;
+}).map(player => (
+  <Player
+    key={player.id}
+    player={player}
+    onPointerDown={(e) => handlePointerDown(e, player.id)}
+  />
+))}
 
         {/* แป้นบาสเกตบอลทั้งสองข้าง */}
         <BasketballHoop
@@ -460,6 +497,13 @@ const Court = forwardRef((props, ref) => {
             หมุนจอในแนวตั้งเพื่อประสบการณ์ที่ดีกว่า
           </div>
         )}
+
+        {/* แสดงสถานะ activePositions สำหรับการตรวจสอบ (ในโหมด development) */}
+        <div className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs" style={{ maxWidth: '200px', maxHeight: '120px', overflow: 'auto', zIndex: 1000 }}>
+          <div>Position status:</div>
+          <div>Red: {JSON.stringify(activePositions?.red)}</div>
+          <div>White: {JSON.stringify(activePositions?.white)}</div>
+        </div>
       </div>
     </div>
   );

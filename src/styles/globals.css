@@ -13,6 +13,96 @@ body {
   touch-action: none;
 }
 
+/* Menu bar styling */
+.menu-bar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1100 !important;
+  background-color: rgba(251, 146, 60, 0.95) !important;
+  backdrop-filter: blur(5px);
+  transition: transform var(--menu-transition-duration) ease-in-out;
+  isolation: isolate;
+}
+
+/* Player dropdown positioning */
+.player-menu-container, .red-team-menu-container, .white-team-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.player-menu-container > div,
+.red-team-menu-container > div,
+.white-team-menu-container > div {
+  z-index: 2000 !important;
+}
+
+/* ป้องกันการซ้อนทับของเมนูกับเนื้อหาในหน้าจอ */
+.absolute.bg-white.bg-opacity-90,
+.absolute.bg-white.bg-opacity-70 {
+  z-index: 1200 !important;
+  position: absolute !important;
+  min-width: 200px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Style for menu dropdowns */
+.player-dropdown,
+.red-team-dropdown,
+.white-team-dropdown {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(5px);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 2000 !important;
+}
+
+/* User menu dropdown */
+.user-menu-container {
+  position: relative;
+}
+
+.user-menu-container .absolute {
+  z-index: 2000 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.user-menu-container button {
+  transition: all 0.2s ease;
+}
+
+.user-menu-container button:hover {
+  background-color: #f8f9fa;
+}
+
+/* แก้ไขการแสดงผลเมนูในหน้าฟีดแบ็ค */
+.feedback-form-container {
+  margin-top: 100px !important; /* เพิ่มระยะห่างจากเมนูบาร์ */
+  position: relative;
+  z-index: 10;
+  background: linear-gradient(135deg, rgba(255,237,213,1) 0%, rgba(254,215,170,1) 100%);
+  box-shadow: 0 8px 32px rgba(252, 165, 76, 0.15);
+  border-radius: 16px;
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.feedback-form-container::after {
+  content: '🏀';
+  position: absolute;
+  font-size: 15rem;
+  opacity: 0.05;
+  top: -30px;
+  right: -30px;
+  transform: rotate(15deg);
+  pointer-events: none;
+}
+
 .player-img {
   pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
@@ -378,11 +468,6 @@ body {
   }
 }
 
-/* เมนูพิเศษสำหรับแสดง/ซ่อน */
-.menu-bar {
-  transition: transform var(--menu-transition-duration) ease-in-out;
-}
-
 /* ไฮไลต์ขอบบนของเมนูที่ซ่อนอยู่เพื่อให้รู้ว่ามีเมนูอยู่ */
 .menu-bar.-translate-y-full::after {
   content: '';
@@ -510,55 +595,7 @@ body {
   font-size: 0.875rem;
 }
 
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  font-size: 1.25rem;
-  color: #f97316;
-}
-
-.loading:after {
-  content: "...";
-  animation: dots 1.5s steps(5, end) infinite;
-}
-
-@keyframes dots {
-  0%, 20% {
-    content: ".";
-  }
-  40% {
-    content: "..";
-  }
-  60%, 100% {
-    content: "...";
-  }
-}
-
-/* สไตล์สำหรับฟอร์มข้อมูลความเห็น */
-.feedback-form-container {
-  background: linear-gradient(135deg, rgba(255,237,213,1) 0%, rgba(254,215,170,1) 100%);
-  box-shadow: 0 8px 32px rgba(252, 165, 76, 0.15);
-  border-radius: 16px;
-  max-width: 500px;
-  margin: 2rem auto;
-  padding: 2rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.feedback-form-container::after {
-  content: '🏀';
-  position: absolute;
-  font-size: 15rem;
-  opacity: 0.05;
-  top: -30px;
-  right: -30px;
-  transform: rotate(15deg);
-  pointer-events: none;
-}
-
+/* Feedback form styling */
 .feedback-form input,
 .feedback-form select,
 .feedback-form textarea {
@@ -603,19 +640,6 @@ body {
   box-shadow: 0 8px 32px rgba(252, 165, 76, 0.15);
 }
 
-/* CSS สำหรับเมนูผู้ใช้ */
-.user-menu-container {
-  position: relative;
-}
-
-.user-menu-container button {
-  transition: all 0.2s ease;
-}
-
-.user-menu-container button:hover {
-  background-color: #f8f9fa;
-}
-
 /* อนิเมชันสำหรับฟอร์มที่ซ่อนได้ */
 .animate-slide-in {
   animation: slideIn 0.3s ease forwards;
@@ -658,6 +682,58 @@ body {
   margin-right: 0.5rem;
 }
 
+/* Loading state */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.25rem;
+  color: #f97316;
+}
+
+.loading:after {
+  content: "...";
+  animation: dots 1.5s steps(5, end) infinite;
+}
+
+@keyframes dots {
+  0%, 20% {
+    content: ".";
+  }
+  40% {
+    content: "..";
+  }
+  60%, 100% {
+    content: "...";
+  }
+}
+
+/* User Profile styles */
+.profile-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, rgba(255,237,213,1) 0%, rgba(254,215,170,1) 100%);
+}
+
+/* Basketball court should be behind everything */
+#basketball-court {
+  z-index: 1 !important;
+}
+
+#basketball-court-container {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 0 !important;
+}
+
+/* About modal needs to be on top of everything */
+.fixed.inset-0.z-\[2000\] {
+  z-index: 2100 !important;
+}
+
 /* =================== Menu positioning system ==================== */
 
 /* Reset any stray elements on court */
@@ -675,7 +751,6 @@ body > div:not([id="root"]) {
 .menu-bar .red-team-dropdown,
 .menu-bar .white-team-dropdown {
   position: fixed !important;
-  background: white !important;
   z-index: 1200 !important;
 }
 
@@ -711,50 +786,6 @@ body > .px-3.py-2:not(.menu-bar *) {
   pointer-events: none !important;
 }
 
-/* Basketball court should remain at the bottom layer */
-#basketball-court {
-  width: 100vw !important;
-  height: 100vh !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  z-index: 1 !important;
-  background-size: cover !important;
-  background-position: center !important;
-}
-
-#basketball-court-container {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 0 !important;
-}
-
-/* Hide any stray team position managers specifically */
-body .TeamPositionsManager:not(.menu-bar .red-team-dropdown .TeamPositionsManager):not(.menu-bar .white-team-dropdown .TeamPositionsManager):not(.menu-bar .player-dropdown .TeamPositionsManager) {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-
-/* Debug - Force hide TeamPositionsManager outside of menu structure */
-#basketball-court-container .TeamPositionsManager,
-#basketball-court .TeamPositionsManager {
-  display: none !important;
-}
-
-/* Ensure menu is above basketball court */
-.menu-bar {
-  z-index: 1000 !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  transform-origin: top;
-}
-
 /* Fix for stray elements on court */
 #basketball-court-container > *:not(#basketball-court) {
   display: none !important;
@@ -769,5 +800,20 @@ body .TeamPositionsManager:not(.menu-bar .red-team-dropdown .TeamPositionsManage
 div:has(>.text-center.font-bold.py-1.border-b.border-gray-200.mb-2):not(.menu-bar *) {
   display: none !important;
 }
+/* เพิ่ม class สำหรับเมนูย่อยที่มีความโปร่งใสสูง */
+.transparent-menu {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(3px) !important;
+  -webkit-backdrop-filter: blur(3px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
 
-/* =================== End of menu positioning system ==================== */
+/* ปรับสีข้อความในเมนูโปร่งใสให้ชัดเจนมากขึ้น */
+.transparent-menu .text-gray-700 {
+  color: rgba(0, 0, 0, 0.7) !important;
+  font-weight: 500 !important;
+}
+
+.transparent-menu button {
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.5) !important;
+}

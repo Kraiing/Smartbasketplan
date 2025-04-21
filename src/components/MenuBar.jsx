@@ -216,7 +216,7 @@ const MenuBar = ({
               </button>
 
               {showPlayerMenu && (
-                <div className={`absolute right-0 mt-1 bg-white bg-opacity-90 backdrop-blur-sm shadow-lg rounded py-1 z-[100] player-dropdown ${isIOS ? 'w-48' : 'w-44'}`}>
+                <div className={`absolute right-0 mt-1 bg-white bg-opacity-30 backdrop-blur-sm shadow-lg rounded py-1 z-[100] player-dropdown transparent-menu ${isIOS ? 'w-48' : 'w-44'}`}>
                   <div className="text-center font-bold text-gray-700 py-1 border-b border-gray-200">
                     {t.positionsManagement}
                   </div>
@@ -241,22 +241,23 @@ const MenuBar = ({
                     </button>
 
                     {showRedTeamMenu && (
-                      <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-90 backdrop-blur-sm shadow-lg rounded-lg py-2 z-[60] w-64 border border-red-100 animate-fade-in red-team-dropdown">
-                        <TeamPositionsManager
-                          team="red"
-                          activePositions={activePositions && activePositions.red ? activePositions.red : {
-                            PG: true, SG: true, SF: true, PF: true, C: true
-                          }}
-                          onTogglePosition={(position) => {
-                            if (onTogglePosition) {
-                              onTogglePosition("red", position);
-                            }
-                          }}
-                          t={t}
-                          isIOS={isIOS}
-                        />
-                      </div>
-                    )}
+                      <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-30 backdrop-blur-sm shadow-lg rounded-lg py-2 z-50 w-64 border border-red-100 animate-fade-in transparent-menu">
+                      <TeamPositionsManager
+      team="red"
+      activePositions={activePositions && activePositions.red ? activePositions.red : {
+        PG: true, SG: true, SF: true, PF: true, C: true
+      }}
+      onTogglePosition={(position) => {
+        console.log(`MenuBar - Toggling red team position: ${position}`);
+        if (onTogglePosition) {
+          onTogglePosition("red", position);
+        }
+      }}
+      t={t}
+      isIOS={isIOS}
+    />
+  </div>
+)}
                   </div>
 
                   {/* ปุ่มจัดการตำแหน่งทีมขาว */}
@@ -279,22 +280,22 @@ const MenuBar = ({
                     </button>
 
                     {showWhiteTeamMenu && (
-                      <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-90 backdrop-blur-sm shadow-lg rounded-lg py-2 z-[60] w-64 border border-blue-100 animate-fade-in white-team-dropdown">
-                        <TeamPositionsManager
-                          team="white"
-                          activePositions={activePositions && activePositions.white ? activePositions.white : {
-                            PG: true, SG: true, SF: true, PF: true, C: true
-                          }}
-                          onTogglePosition={(position) => {
-                            if (onTogglePosition) {
-                              onTogglePosition("white", position);
-                            }
-                          }}
-                          t={t}
-                          isIOS={isIOS}
-                        />
-                      </div>
-                    )}
+                      <div className="absolute left-full top-0 mt-0 ml-1 bg-white bg-opacity-30 backdrop-blur-sm shadow-lg rounded-lg py-2 z-[60] w-64 border border-blue-100 animate-fade-in white-team-dropdown transparent-menu">
+                      <TeamPositionsManager
+      team="white"
+      activePositions={activePositions && activePositions.white ? activePositions.white : {
+        PG: true, SG: true, SF: true, PF: true, C: true
+      }}
+      onTogglePosition={(position) => {
+        if (onTogglePosition) {
+          onTogglePosition("white", position);
+        }
+      }}
+      t={t}
+      isIOS={isIOS}
+    />
+  </div>
+)}
                   </div>
 
                   <div className="border-t border-gray-200 my-1"></div>
@@ -385,7 +386,7 @@ const MenuBar = ({
               </button>
 
               {showUserMenu && (
-                <div className="absolute right-0 mt-1 bg-white bg-opacity-70 backdrop-blur-sm shadow-lg rounded py-1 z-50 w-48">
+                <div className="absolute right-0 mt-1 bg-white bg-opacity-30 backdrop-blur-sm shadow-lg rounded py-1 z-50 w-48 transparent-menu">
                   {currentUser ? (
                     <>
                       <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-200">
