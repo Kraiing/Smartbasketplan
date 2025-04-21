@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LanguageSwitcher from './LanguageSwitcher';
 import { translations } from '../i18n/translations';
 import TeamPositionsManager from './TeamPositionsManager';
 import useMenuVisibility from '../hooks/useMenuVisibility';
+import { useAuth } from '../contexts/AuthContext';
 
 const MenuBar = ({
+  language = 'th',
+  setLanguage,
   onResetPositions,
   onUndo,
   onRedo,
@@ -13,22 +17,26 @@ const MenuBar = ({
   activePositions,
   onTogglePosition
 }) => {
-  const [language, setLanguage] = useState('th');
+  // ใช้ภาษาที่ได้รับจาก props หรือใช้ค่าเริ่มต้นเป็นภาษาไทย
   const [showPlayerMenu, setShowPlayerMenu] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showRedTeamMenu, setShowRedTeamMenu] = useState(false);
   const [showWhiteTeamMenu, setShowWhiteTeamMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
-  const { 
-    isVisible, 
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const {
+    isVisible,
     isTouchDevice,
-    handleMenuEnter, 
+    handleMenuEnter,
     handleMenuLeave,
     toggleMenu,
-    showMenu,
-    hideMenu
+    showMenu
   } = useMenuVisibility();
+
   const t = translations[language] || translations.th;
 
   // ตรวจสอบว่าเป็นอุปกรณ์ iOS หรือไม่
@@ -49,7 +57,6 @@ const MenuBar = ({
     // ตรวจจับการเปลี่ยนแปลงการหมุนจอ
     window.addEventListener('resize', checkOrientation);
     window.addEventListener('orientationchange', () => {
-      // รอให้การหมุนจอเสร็จสมบูรณ์ก่อนตรวจสอบ
       setTimeout(checkOrientation, 100);
     });
 
@@ -71,6 +78,9 @@ const MenuBar = ({
       if (showWhiteTeamMenu && e.target.closest('.white-team-menu-container') === null) {
         setShowWhiteTeamMenu(false);
       }
+      if (showUserMenu && e.target.closest('.user-menu-container') === null) {
+        setShowUserMenu(false);
+      }
     };
 
     document.addEventListener('pointerdown', handleClickOutside);
@@ -78,18 +88,16 @@ const MenuBar = ({
     return () => {
       document.removeEventListener('pointerdown', handleClickOutside);
     };
-  }, [showPlayerMenu, showRedTeamMenu, showWhiteTeamMenu]);
+  }, [showPlayerMenu, showRedTeamMenu, showWhiteTeamMenu, showUserMenu]);
 
   // ใช้เฉพาะบนอุปกรณ์ iOS
   const handleTouchStartButton = (e) => {
-    // เพิ่มเอฟเฟคเมื่อกดปุ่มเพื่อให้ผู้ใช้รู้ว่าได้กดแล้ว
     if (isIOS) {
       e.currentTarget.style.opacity = '0.7';
     }
   };
 
   const handleTouchEndButton = (e) => {
-    // คืนค่าเอฟเฟคกลับเมื่อปล่อยปุ่ม
     if (isIOS) {
       e.currentTarget.style.opacity = '1';
     }
@@ -98,44 +106,69 @@ const MenuBar = ({
   // เปิดป๊อปอัพข้อมูล
   const handleOpenAboutModal = () => {
     setShowAboutModal(true);
-    // ป้องกันไม่ให้เมนูเลื่อนกลับขณะที่กล่องข้อมูลเปิดอยู่
-    showMenu(); // บังคับให้เมนูแสดงตลอดเวลาที่กล่องข้อมูลเปิดอยู่
+    showMenu();
   };
 
   // ปิดป๊อปอัพข้อมูล
   const handleCloseAboutModal = () => {
     setShowAboutModal(false);
-    
-    // สำหรับอุปกรณ์ iOS ต้องกำหนดให้ซ่อนเมนูหลังจากปิดกล่องข้อมูล
+
     if (isIOS) {
       setTimeout(() => {
-        handleMenuLeave(); // เริ่มนับเวลาใหม่สำหรับการซ่อนเมนู
+        handleMenuLeave();
       }, 500);
     }
   };
 
-  // ฟังก์ชันสำหรับจัดการการเปิด/ปิดเมนูของทีมแดง
+  // จัดการออกจากระบบ
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  // ไปยังหน้าโปรไฟล์
+  const handleGoToProfile = () => {
+    navigate('/profile');
+  };
+
+  // ไปยังหน้า Feedback
+  const handleGoToFeedback = () => {
+    navigate('/feedback');
+  };
+
+  // จัดการการเปิด/ปิดเมนูของทีมแดง
   const handleToggleRedTeamMenu = () => {
     setShowRedTeamMenu(!showRedTeamMenu);
     setShowWhiteTeamMenu(false);
   };
 
-  // ฟังก์ชันสำหรับจัดการการเปิด/ปิดเมนูของทีมขาว
+  // จัดการการเปิด/ปิดเมนูของทีมขาว
   const handleToggleWhiteTeamMenu = () => {
     setShowWhiteTeamMenu(!showWhiteTeamMenu);
     setShowRedTeamMenu(false);
   };
 
+  // เปิด/ปิดเมนูผู้ใช้
+  const handleToggleUserMenu = () => {
+    setShowUserMenu(!showUserMenu);
+  };
+
   // ฟังก์ชันสำหรับปรับเปลี่ยนภาษา
   const handleLanguageChange = (newLanguage) => {
-    setLanguage(newLanguage);
+    if (setLanguage) {
+      setLanguage(newLanguage);
+    }
   };
 
   return (
     <>
       {/* ปุ่มสลับการแสดงเมนูสำหรับอุปกรณ์ทัชสกรีน */}
       {isTouchDevice && !isVisible && !showAboutModal && (
-        <button 
+        <button
           className="fixed top-0 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-70 text-orange-500 z-50 px-4 py-1 rounded-b-lg shadow"
           onClick={toggleMenu}
           onTouchStart={handleTouchStartButton}
@@ -144,8 +177,8 @@ const MenuBar = ({
           ⇩
         </button>
       )}
-      
-      <div 
+
+      <div
         className={`w-full bg-orange-400 text-white px-4 py-2 shadow-md fixed top-0 left-0 right-0 z-50 menu-bar ${isIOS ? 'ios-menu' : ''} ${isLandscape ? 'landscape' : 'portrait'} transition-transform duration-300 ease-in-out ${isVisible || showAboutModal ? 'translate-y-0' : '-translate-y-full'}`}
         onMouseEnter={handleMenuEnter}
         onMouseLeave={handleMenuLeave}
@@ -157,6 +190,16 @@ const MenuBar = ({
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
+            {/* ปุ่มแสดงข้อเสนอแนะ */}
+            <button
+              className="bg-white text-orange-600 px-3 py-1 rounded hover:bg-gray-100"
+              onClick={handleGoToFeedback}
+              onTouchStart={handleTouchStartButton}
+              onTouchEnd={handleTouchEndButton}
+            >
+              {isIOS && isLandscape ? "💬" : t.feedbackButton || "ข้อเสนอแนะ"}
+            </button>
+
             {/* เมนูผู้เล่นแบบดร็อปดาวน์ */}
             <div className="relative player-menu-container">
               <button
@@ -201,7 +244,6 @@ const MenuBar = ({
                             PG: true, SG: true, SF: true, PF: true, C: true
                           }}
                           onTogglePosition={(position) => {
-                            console.log(`MenuBar - Toggling red team position: ${position}`);
                             if (onTogglePosition) {
                               onTogglePosition("red", position);
                             }
@@ -240,7 +282,6 @@ const MenuBar = ({
                             PG: true, SG: true, SF: true, PF: true, C: true
                           }}
                           onTogglePosition={(position) => {
-                            console.log(`MenuBar - Toggling white team position: ${position}`);
                             if (onTogglePosition) {
                               onTogglePosition("white", position);
                             }
@@ -254,7 +295,7 @@ const MenuBar = ({
 
                   <div className="border-t border-gray-200 my-1"></div>
 
-                  {/* เมนูเดิมถูกลบออกตามที่ต้องการ */}
+                  {/* ลบส่วนปุ่ม +/- ออกทั้งหมด */}
                 </div>
               )}
             </div>
@@ -326,14 +367,58 @@ const MenuBar = ({
               currentLanguage={language}
               onLanguageChange={handleLanguageChange}
             />
+
+            {/* ปุ่มเมนูผู้ใช้ */}
+            <div className="relative user-menu-container">
+              <button
+                className="bg-white text-orange-600 px-3 py-1 rounded hover:bg-gray-100 flex items-center"
+                onClick={handleToggleUserMenu}
+                onTouchStart={handleTouchStartButton}
+                onTouchEnd={handleTouchEndButton}
+              >
+                <span className="mr-1">👤</span>
+                {!isLandscape && currentUser?.email ? currentUser.email.split('@')[0] : ''}
+              </button>
+
+              {showUserMenu && (
+                <div className="absolute right-0 mt-1 bg-white bg-opacity-70 backdrop-blur-sm shadow-lg rounded py-1 z-50 w-48">
+                  {currentUser ? (
+                    <>
+                      <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-200">
+                        {currentUser.email}
+                      </div>
+                      <button
+                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center"
+                        onClick={handleGoToProfile}
+                      >
+                        <span className="mr-2">👤</span> {t.profile || 'โปรไฟล์'}
+                      </button>
+                      <button
+                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center"
+                        onClick={handleLogout}
+                      >
+                        <span className="mr-2">🚪</span> {t.logout || 'ออกจากระบบ'}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center"
+                      onClick={() => navigate('/login')}
+                    >
+                      <span className="mr-2">🔑</span> {t.login || 'เข้าสู่ระบบ'}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* ป๊อปอัพแสดงข้อมูลและวิธีการใช้งาน */}
         {showAboutModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[2000] p-4" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-            <div className="bg-white text-black p-5 rounded-lg w-full max-w-md max-h-[70vh] overflow-y-auto" style={{ position: 'relative', top: 'auto', transform: 'none' }}>
-              <h2 className="font-bold text-xl text-center mb-2">{t.aboutTitle}</h2>
+            <div className="bg-white text-black p-5 rounded-lg max-w-md max-h-[70vh] overflow-y-auto" style={{ position: 'relative', top: 'auto', transform: 'none' }}>
+              <h2 className="font-bold text-xl text-center mb-2 text-orange-600">{t.aboutTitle}</h2>
 
               {/* ข้อมูลผู้พัฒนา */}
               <div className="mb-4">
@@ -343,10 +428,13 @@ const MenuBar = ({
 
               {/* วิธีใช้งาน */}
               <div className="mb-4">
-                <h3 className="font-bold text-lg mb-2">{t.howToUse}</h3>
+                <h3 className="font-bold text-lg mb-2 text-orange-600">{t.howToUse}</h3>
                 <ul className="space-y-1">
                   {t.instructions.map((instruction, index) => (
-                    <li key={index} className="text-sm">{instruction}</li>
+                    <li key={index} className="text-sm flex items-start">
+                      <span className="text-orange-500 mr-2 flex-shrink-0">•</span>
+                      <span>{instruction}</span>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -354,7 +442,7 @@ const MenuBar = ({
               {/* ปุ่มปิด */}
               <div className="text-center mt-4">
                 <button
-                  className="bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600"
+                  className="bg-orange-500 text-white px-6 py-2 rounded-full hover:bg-orange-600 transition-colors"
                   onClick={handleCloseAboutModal}
                   onTouchStart={handleTouchStartButton}
                   onTouchEnd={handleTouchEndButton}

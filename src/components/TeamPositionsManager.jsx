@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Switch from './Switch';
 
 /**
@@ -15,13 +15,13 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
   const positions = ['PG', 'SG', 'SF', 'PF', 'C'];
 
   // Default positions ในกรณีที่ activePositions ไม่มีข้อมูล
-  const defaultPositions = {
+  const defaultPositions = useMemo(() => ({
     PG: true,
     SG: true,
     SF: true,
     PF: true,
     C: true
-  };
+  }), []);
 
   // เพิ่ม local state เพื่อให้ UI อัพเดททันทีแม้ props จะยังไม่เปลี่ยน
   const [localPositions, setLocalPositions] = useState(
@@ -33,7 +33,7 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
     const newPositions = activePositions ? { ...defaultPositions, ...activePositions } : defaultPositions;
     setLocalPositions(newPositions);
     console.log(`TeamPositionsManager updated local state for ${team}:`, newPositions);
-  }, [activePositions, team]);
+  }, [activePositions, team, defaultPositions]);
 
   // Debug เพื่อตรวจสอบค่า activePositions ที่ได้รับ
   console.log(`TeamPositionsManager for ${team} - activePositions:`, activePositions);
@@ -123,7 +123,7 @@ const TeamPositionsManager = ({ team, activePositions = {}, onTogglePosition, t,
               </span>
               <Switch
                 checked={!!localPositions[position]} // ใช้ localPositions แทน
-                onChange={(e) => {
+                onChange={() => {
                   console.log(`Switch onChange triggered for ${team} ${position} - current value: ${localPositions[position]}`);
                   // เรียก handleToggle ผ่าน parent ที่มี onClick handler เดียวกัน
                   // ไม่หยุด event propagation เพื่อให้ไปเรียก onClick ของ parent
